@@ -1,5 +1,5 @@
 // Require the necessary discord.js classes
-import { Events, GatewayIntentBits, Snowflake } from "discord.js";
+import { ActivityType, Events, GatewayIntentBits, Snowflake } from "discord.js";
 import Client from "./utils/Client"
 import { MusicSubscription } from "./utils/Subscription"
 import * as dotenv from "dotenv";
@@ -15,6 +15,10 @@ export const subscriptions = new Map<Snowflake, MusicSubscription>();
 
 client.once(Events.ClientReady, (c) => {
   console.log(`Ready! Logged in as ${c.user.tag}`);
+  c.user.setPresence({
+    activities: [{ name: "/play", type: ActivityType.Listening }],
+    status: "online",
+  });
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
