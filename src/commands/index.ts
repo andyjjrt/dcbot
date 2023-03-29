@@ -5,4 +5,6 @@ import leave from "./leave";
 import skip from "./skip";
 import queue from "./queue";
 
-export default [ping, play, loop, leave, skip, queue];
+import cat from "./cat"
+
+export default [ping, play, loop, leave, skip, queue, cat];

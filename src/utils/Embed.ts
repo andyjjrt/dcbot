@@ -55,3 +55,17 @@ export class ErrorEmbed extends EmbedBuilder {
       });
   }
 }
+
+export class CatEmbed extends EmbedBuilder {
+  constructor(interaction: CommandInteraction, image: string) {
+    super();
+    this.setColor(0xd6e5fc)
+      .setTitle(`:cat: Random cat`)
+      .setImage(image)
+      .setTimestamp()
+      .setFooter({
+        text: interaction.client.user.username,
+        iconURL: interaction.client.user.avatarURL() || ""
+      });
+  }
+}
