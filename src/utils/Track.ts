@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import fs, { createReadStream } from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice"
 import * as dotenv from "dotenv";
-import { CommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, CommandInteraction, MessageComponentInteraction } from 'discord.js';
 import { InfoEmbed } from './Embed';
 import { setInterval } from 'timers/promises';
 import { stdout } from 'process';
@@ -73,7 +73,7 @@ export class Track implements TrackData {
    *
    * @returns The created Track
    */
-  public static async from(url: string, methods: Pick<Track, 'onStart' | 'onError'>, interaction: CommandInteraction): Promise<{ title: string, url: string, thumbnail: string, tracks: Track[] }> {
+  public static async from(url: string, methods: Pick<Track, 'onStart' | 'onError'>, interaction: ChatInputCommandInteraction | MessageComponentInteraction): Promise<{ title: string, url: string, thumbnail: string, tracks: Track[] }> {
     // single video => plylist => error
 
     try {

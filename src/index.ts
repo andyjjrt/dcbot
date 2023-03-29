@@ -1,10 +1,12 @@
 // Require the necessary discord.js classes
-import { ActivityType, Events, GatewayIntentBits, Snowflake } from "discord.js";
+import { ActivityType, CommandInteraction, Events, GatewayIntentBits, Snowflake } from "discord.js";
 import Client from "./utils/Client"
 import { MusicSubscription } from "./utils/Subscription"
 import * as dotenv from "dotenv";
 dotenv.config();
 const { TOKEN, CLIENT_ID } = process.env;
+
+import { play } from "./commands/play"
 
 // Create a new client instance
 export const client = new Client({
@@ -53,6 +55,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.on(Events.InteractionCreate, interaction => {
   if (!interaction.isButton()) return;
   console.log(interaction);
+});
+
+client.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isStringSelectMenu()) return;
+  if (new Date().getTime() - interaction.message.createdTimestamp > 60000) return;
+  if (interaction.customId === "#SearchSelectMenu") {
+    await interaction.deferReply();
+    play(interaction, `https://www.youtube.com/watch?v=${interaction.values[0]}`, false, false)
+  }
 });
 
 client.login(TOKEN);
