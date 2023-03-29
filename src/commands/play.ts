@@ -72,10 +72,11 @@ export default {
       list.tracks.forEach(track => {
         if (subscription) subscription.enqueue(track);
       })
+      console.log(list)
       await interaction.editReply({ embeds: [new SuccessEmbed(interaction, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(list.thumbnail)] });
     } catch (error) {
       console.warn(error);
-      await interaction.editReply({ embeds: [new ErrorEmbed(interaction, "Error", "Failed to play track, please try again later!")] });
+      await interaction.editReply({ embeds: [new ErrorEmbed(interaction, "Error", "Failed to play track, please try again later!\n\n" +　error)] });
     }
   },
 };

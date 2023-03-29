@@ -12,6 +12,7 @@ import {
 } from '@discordjs/voice';
 import type { Track } from './Track';
 import { promisify } from 'node:util';
+import { subscriptions } from "..";
 
 const wait = promisify(setTimeout);
 
@@ -35,17 +36,14 @@ export class MusicSubscription {
     this.queue = [];
 
     this.voiceConnection.on("stateChange", async (_: VoiceConnectionState, newState: VoiceConnectionState) => {
+      const guildId = voiceConnection.joinConfig.guildId;
+      console.log(newState.status, newState);
       if (newState.status === VoiceConnectionStatus.Disconnected) {
         if (newState.reason === VoiceConnectionDisconnectReason.WebSocketClose && newState.closeCode === 4014) {
-          try {
-            await entersState(this.voiceConnection, VoiceConnectionStatus.Connecting, 5_000);
-          } catch {
-            this.voiceConnection.destroy();
-          }
-        } else if (this.voiceConnection.rejoinAttempts < 5) {
-          await wait((this.voiceConnection.rejoinAttempts + 1) * 5_000);
-          this.voiceConnection.rejoin();
+          subscriptions.delete(guildId);
+          this.voiceConnection.destroy();
         } else {
+          subscriptions.delete(guildId);
           this.voiceConnection.destroy();
         }
       } else if (newState.status === VoiceConnectionStatus.Destroyed) {
@@ -58,7 +56,10 @@ export class MusicSubscription {
         try {
           await entersState(this.voiceConnection, VoiceConnectionStatus.Ready, 20_000);
         } catch {
-          if (this.voiceConnection.state.status !== VoiceConnectionStatus.Destroyed) this.voiceConnection.destroy();
+          if (this.voiceConnection.state.status !== VoiceConnectionStatus.Destroyed) {
+            this.voiceConnection.destroy();
+            subscriptions.delete(guildId);
+          }
         } finally {
           this.readyLock = false;
         }
