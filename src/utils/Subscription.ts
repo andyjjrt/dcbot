@@ -41,7 +41,6 @@ export class MusicSubscription {
 
     this.voiceConnection.on("stateChange", async (_: VoiceConnectionState, newState: VoiceConnectionState) => {
       const guildId = voiceConnection.joinConfig.guildId;
-      console.log(newState.status, newState);
       if (newState.status === VoiceConnectionStatus.Disconnected) {
         if (newState.reason === VoiceConnectionDisconnectReason.WebSocketClose && newState.closeCode === 4014) {
           subscriptions.delete(guildId);
@@ -124,7 +123,7 @@ export class MusicSubscription {
 
     if (!this.currentPlaying && this.queue.length === 0) {
       await client.channels.fetch(this.commandChannelId).then((channel) => {
-        if (channel) (channel as TextChannel).send({embeds: [new InfoEmbed((client as Client), ":wave: Leaving", "bye")]})
+        if (channel) (channel as TextChannel).send({embeds: [new InfoEmbed((client as Client), ":wave:  Leaving", "bye")]})
       })
       subscriptions.delete(this.voiceConnection.joinConfig.guildId);
       this.voiceConnection.destroy();

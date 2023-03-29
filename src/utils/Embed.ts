@@ -4,7 +4,7 @@ export class SuccessEmbed extends EmbedBuilder {
   constructor(client: Client<true>, title: string, description: string) {
     super();
     this.setColor(0x33ff33)
-      .setTitle(`:white_check_mark: ${title}`)
+      .setTitle(`:white_check_mark:  ${title}`)
       .setDescription(description)
       .setTimestamp()
       .setFooter({
@@ -18,7 +18,7 @@ export class PlayingEmbed extends EmbedBuilder {
   constructor(client: Client<true>, name: string, url: string) {
     super();
     this.setColor(0x3ca2cd)
-      .setTitle(`:arrow_forward: Now Playing`)
+      .setTitle(`:arrow_forward:  Now Playing`)
       .setDescription(`[${name}](${url})`)
       .setTimestamp()
       .setFooter({
@@ -32,7 +32,7 @@ export class ErrorEmbed extends EmbedBuilder {
   constructor(client: Client<true>, title: string, description: string) {
     super();
     this.setColor(0xff0000)
-      .setTitle(`:x: ${title}`)
+      .setTitle(`:x:  ${title}`)
       .setDescription(description)
       .setTimestamp()
       .setFooter({
@@ -46,7 +46,7 @@ export class CatEmbed extends EmbedBuilder {
   constructor(client: Client<true>, image: string) {
     super();
     this.setColor(0xd6e5fc)
-      .setTitle(`:cat: Random cat`)
+      .setTitle(`:cat:  Random cat`)
       .setImage(image)
       .setTimestamp()
       .setFooter({

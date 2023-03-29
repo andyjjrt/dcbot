@@ -1,7 +1,6 @@
-import { SlashCommandBuilder, CommandInteraction, GuildMember } from "discord.js";
-import { getVoiceConnection } from "@discordjs/voice";
+import { SlashCommandBuilder, CommandInteraction } from "discord.js";
 import { subscriptions } from "..";
-import { ErrorEmbed, SuccessEmbed } from "../utils/Embed";
+import { ErrorEmbed, InfoEmbed } from "../utils/Embed";
 
 export default {
   data: new SlashCommandBuilder()
@@ -13,7 +12,7 @@ export default {
     if (subscription) {
       subscription.voiceConnection.destroy();
       subscriptions.delete(interaction.guildId);
-      await interaction.reply({ embeds: [new SuccessEmbed(interaction.client, "Left", "I'm right.")] });
+      await interaction.reply({ embeds: [new InfoEmbed(interaction.client, ":wave:  Left",  "I'm right.")] });
     } else {
       await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
     }

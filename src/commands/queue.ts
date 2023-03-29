@@ -29,13 +29,13 @@ export default {
           .join('\n');
         const remain = subscription.queue.length > 10 ? `\n\n... and **${subscription.queue.length - 10}** more songs` : ""
 
-        const row = new ActionRowBuilder<ButtonBuilder>()
-          .addComponents(
-            new ButtonBuilder()
-              .setCustomId('primary')
-              .setLabel('Click me!')
-              .setStyle(ButtonStyle.Primary),
-          );
+        // const row = new ActionRowBuilder<ButtonBuilder>()
+        //   .addComponents(
+        //     new ButtonBuilder()
+        //       .setCustomId('primary')
+        //       .setLabel('Click me!')
+        //       .setStyle(ButtonStyle.Primary),
+        //   );
 
         await interaction.reply({
           embeds: [
@@ -45,7 +45,7 @@ export default {
                 { name: 'Loop', value: subscription.loop, inline: true },
               )
           ],
-          components: [row]
+          // components: [row]
         })
       }
     } else {
