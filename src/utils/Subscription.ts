@@ -94,6 +94,16 @@ export class MusicSubscription {
   }
 
   /**
+ * Adds a new Track to the queue front.
+ *
+ * @param track The track to add to the queue
+ */
+  public prependQueue(track: Track[]) {
+    this.queue.unshift(...track);
+    this.processQueue();
+  }
+
+  /**
    * Stops audio playback and empties the queue.
    */
   public stop() {

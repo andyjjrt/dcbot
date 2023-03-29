@@ -14,10 +14,13 @@ export default {
   data: new SlashCommandBuilder()
     .setName("play")
     .setDescription("Play a song from youtube")
-    .addStringOption(option => 
+    .addStringOption(option =>
       option.setName("url").setDescription("YT link").setRequired(true)
     )
-    .addBooleanOption(option => 
+    .addBooleanOption(option =>
+      option.setName("top").setDescription("Force play top")
+    )
+    .addBooleanOption(option =>
       option.setName("shuffle").setDescription("Shuffle list when queue")
     ),
   async execute(interaction: CommandInteraction) {
@@ -25,6 +28,7 @@ export default {
     let subscription = subscriptions.get(interaction.guildId || "");
     const url = interaction.options.get("url", true).value as string;
     const shuffle = interaction.options.get("shuffle")?.value ? true : false;
+    const top = interaction.options.get("top")?.value ? true : false;
     if (!subscription) {
       if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
         const channel = interaction.member.voice.channel;
@@ -68,15 +72,20 @@ export default {
         },
       }, interaction);
       // Enqueue the track and reply a success message to the user
-      if(shuffle) list.tracks.sort((a, b) => Math.random() - 0.5);
-      list.tracks.forEach(track => {
-        if (subscription) subscription.enqueue(track);
-      })
-      console.log(list)
+      if (shuffle) list.tracks.sort((a, b) => Math.random() - 0.5);
+      if (top) {
+        if (subscription.currentPlaying) subscription.prependQueue([subscription.currentPlaying]);
+        if (subscription) subscription.prependQueue(list.tracks);
+        subscription.audioPlayer.stop(true);
+      } else {
+        list.tracks.forEach(track => {
+          if (subscription) subscription.enqueue(track);
+        })
+      }
       await interaction.editReply({ embeds: [new SuccessEmbed(interaction, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(list.thumbnail)] });
     } catch (error) {
       console.warn(error);
-      await interaction.editReply({ embeds: [new ErrorEmbed(interaction, "Error", "Failed to play track, please try again later!\n\n" +　error)] });
+      await interaction.editReply({ embeds: [new ErrorEmbed(interaction, "Error", "Failed to play track, please try again later!\n\n" + error)] });
     }
   },
 };
