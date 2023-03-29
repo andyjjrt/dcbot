@@ -7,7 +7,7 @@ dotenv.config();
 const { TOKEN, CLIENT_ID } = process.env;
 
 // Create a new client instance
-const client = new Client({
+export const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 }, CLIENT_ID, TOKEN);
 
@@ -47,6 +47,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
       });
     }
   }
+});
+
+
+client.on(Events.InteractionCreate, interaction => {
+  if (!interaction.isButton()) return;
+  console.log(interaction);
 });
 
 client.login(TOKEN);

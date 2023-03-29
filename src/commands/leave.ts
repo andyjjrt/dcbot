@@ -13,9 +13,9 @@ export default {
     if (subscription) {
       subscription.voiceConnection.destroy();
       subscriptions.delete(interaction.guildId);
-      await interaction.reply({ embeds: [new SuccessEmbed(interaction, "Left", "I'm right.")] });
+      await interaction.reply({ embeds: [new SuccessEmbed(interaction.client, "Left", "I'm right.")] });
     } else {
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction, "Error", "Not playing in this server!")] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
     }
 
   },

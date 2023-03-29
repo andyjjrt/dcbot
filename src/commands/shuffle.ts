@@ -12,13 +12,13 @@ export default {
     let subscription = subscriptions.get(interaction.guildId);
     if (subscription) {
       if (subscription.audioPlayer.state.status === AudioPlayerStatus.Idle || !subscription.currentPlaying) {
-        await interaction.reply({ embeds: [new ErrorEmbed(interaction, "Error", "Nothing is currently playing!")] })
+        await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Nothing is currently playing!")] })
       } else {
         subscription.queue.sort((a, b) => Math.random() - 0.5);
-        await interaction.reply({ embeds: [new SuccessEmbed(interaction, "Sucess", "Shuffle Completed")] });
+        await interaction.reply({ embeds: [new SuccessEmbed(interaction.client, "Sucess", "Shuffle Completed")] });
       }
     } else {
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction, "Error", "Not playing in this server!")] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
     }
   },
 };

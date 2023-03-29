@@ -5,7 +5,7 @@ import fs, { createReadStream } from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice"
 import * as dotenv from "dotenv";
 import { CommandInteraction } from 'discord.js';
-import { PendingEmbed } from './Embed';
+import { InfoEmbed } from './Embed';
 import { setInterval } from 'timers/promises';
 import { stdout } from 'process';
 dotenv.config();
@@ -80,13 +80,13 @@ export class Track implements TrackData {
       try {
         const valid = ytdlCore.validateURL(url);
         if (!valid) throw new Error("not a song")
-        await interaction.editReply({ embeds: [new PendingEmbed(interaction, "Fetching Song")] }).catch(console.warn);
+        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching Song")] }).catch(console.warn);
         const res = await new Promise((resolve, reject) => {
           exec(`yt-dlp --dump-single-json --no-abort-on-error ${url} > ${MUSIC_DIR}/info.json`, (error, stdout, stderr) => {
             resolve(stdout);
           });
         }).then(async () => {
-          await interaction.editReply({ embeds: [new PendingEmbed(interaction, "Resolving song")] }).catch(console.warn);
+          await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving song")] }).catch(console.warn);
           const file = await JSON.parse(fs.readFileSync(`${MUSIC_DIR}/info.json`).toString());
           const filePath = `${MUSIC_DIR}/${file.id}.webm`
 
@@ -111,13 +111,13 @@ export class Track implements TrackData {
 
         return res;
       } catch (e) {
-        await interaction.editReply({ embeds: [new PendingEmbed(interaction, "Fetching list")] }).catch(console.warn);
+        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching list")] }).catch(console.warn);
         const res = await new Promise((resolve, reject) => {
           exec(`yt-dlp --dump-single-json --no-abort-on-error --flat-playlist ${url} > ${MUSIC_DIR}/info.json`, (error, stdout, stderr) => {
             resolve(stdout);
           });
         }).then(async () => {
-          await interaction.editReply({ embeds: [new PendingEmbed(interaction, "Resolving songs")] }).catch(console.warn);
+          await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving songs")] }).catch(console.warn);
           const file = await JSON.parse(fs.readFileSync(`${MUSIC_DIR}/info.json`).toString());
           const playlist = file.entries;
           let tracks = new Array<Track>();
@@ -144,7 +144,7 @@ export class Track implements TrackData {
           for await (const startTime of setInterval(2000, Date.now())) {
             const now = Date.now();
             console.log(now, " ", count, "/", total);
-            await interaction.editReply({ embeds: [new PendingEmbed(interaction, `Resolving songs ${count} / ${total}`)] }).catch(console.warn);
+            await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", `Resolving songs ${count} / ${total}`)] }).catch(console.warn);
             if (count >= total)
               break;
           }

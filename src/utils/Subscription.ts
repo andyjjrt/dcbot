@@ -1,3 +1,4 @@
+import { InfoEmbed } from './Embed';
 import {
   AudioPlayer,
   AudioPlayerStatus,
@@ -12,7 +13,8 @@ import {
 } from '@discordjs/voice';
 import type { Track } from './Track';
 import { promisify } from 'node:util';
-import { subscriptions } from "..";
+import { subscriptions, client } from "..";
+import { Client, TextChannel } from 'discord.js';
 
 const wait = promisify(setTimeout);
 
@@ -23,6 +25,7 @@ const wait = promisify(setTimeout);
 export class MusicSubscription {
   public readonly voiceConnection: VoiceConnection;
   public readonly audioPlayer: AudioPlayer;
+  public readonly commandChannelId: string;
   public queue: Track[];
   public currentPlaying: Track | null = null;
   public loop: "off" | "one" | "queue" = "off";
@@ -30,9 +33,10 @@ export class MusicSubscription {
   public readyLock = false;
   public skipFlag = false;
 
-  public constructor(voiceConnection: VoiceConnection) {
+  public constructor(voiceConnection: VoiceConnection, commandChannelId: string) {
     this.voiceConnection = voiceConnection;
     this.audioPlayer = createAudioPlayer();
+    this.commandChannelId = commandChannelId;
     this.queue = [];
 
     this.voiceConnection.on("stateChange", async (_: VoiceConnectionState, newState: VoiceConnectionState) => {
@@ -119,6 +123,10 @@ export class MusicSubscription {
     // If the queue is locked (already being processed), is empty, or the audio player is already playing something, return
 
     if (!this.currentPlaying && this.queue.length === 0) {
+      await client.channels.fetch(this.commandChannelId).then((channel) => {
+        if (channel) (channel as TextChannel).send({embeds: [new InfoEmbed((client as Client), ":wave: Leaving", "bye")]})
+      })
+      subscriptions.delete(this.voiceConnection.joinConfig.guildId);
       this.voiceConnection.destroy();
       return;
     }

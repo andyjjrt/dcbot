@@ -14,9 +14,9 @@ export default {
     if (subscription) {
       subscription.skipFlag = true;
       subscription.audioPlayer.stop();
-      await interaction.reply({ embeds: [new SuccessEmbed(interaction, "Sucess", "Skipped current song")] });
+      await interaction.reply({ embeds: [new SuccessEmbed(interaction.client, "Sucess", "Skipped current song")] });
     } else {
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction, "Error", "Not playing in this server!")] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
     }
   },
 };

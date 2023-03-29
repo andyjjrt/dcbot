@@ -24,14 +24,14 @@ export default {
       subscription.loop = status as "off" | "one" | "queue";
       await interaction.reply({
         embeds: [
-          new SuccessEmbed(interaction, "Current Status", " ")
+          new SuccessEmbed(interaction.client, "Current Status", " ")
             .addFields(
               { name: 'Loop', value: subscription.loop, inline: true }
             )
         ]
       });
     } else {
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction, "Error", "Not playing in this server!")] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
     }
   },
 };
