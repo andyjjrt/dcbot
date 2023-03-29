@@ -1,13 +1,12 @@
 import ytdlCore from 'ytdl-core';
 import { exec } from 'child_process';
-import { promisify } from 'util';
 import fs, { createReadStream } from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice"
 import * as dotenv from "dotenv";
-import { ChatInputCommandInteraction, CommandInteraction, MessageComponentInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, MessageComponentInteraction } from 'discord.js';
 import { InfoEmbed } from './Embed';
 import { setInterval } from 'timers/promises';
-import { stdout } from 'process';
+import { getVideoDurationInSeconds } from "get-video-duration"
 dotenv.config();
 const { MUSIC_DIR } = process.env;
 
@@ -19,6 +18,8 @@ export interface TrackData {
   title: string;
   thumbnail: string;
   filePath: string;
+  startTime: number;
+  endTime: number;
   onStart: (url: string, title: string, thumbnail: string) => void;
   onError: (error: Error) => void;
 }
@@ -39,16 +40,29 @@ export class Track implements TrackData {
   public readonly title: string;
   public readonly thumbnail: string;
   public readonly filePath: string;
+  public startTime: number;
+  public endTime: number;
   public readonly onStart: (url: string, title: string, thumbnail: string) => void;
   public readonly onError: (error: Error) => void;
 
-  private constructor({ url, title, thumbnail, filePath, onStart, onError }: TrackData) {
+  private constructor(
+    { url, title, thumbnail, filePath, onStart, onError }:
+      {
+        url: string;
+        title: string;
+        thumbnail: string;
+        filePath: string;
+        onStart: (url: string, title: string, thumbnail: string) => void;
+        onError: (error: Error) => void;
+      }) {
     this.url = url;
     this.title = title;
     this.thumbnail = thumbnail;
     this.filePath = filePath;
     this.onStart = onStart;
     this.onError = onError;
+    this.startTime = new Date().getTime();
+    this.endTime = new Date().getTime();
   }
 
   public async createAudioResource() {
@@ -62,6 +76,9 @@ export class Track implements TrackData {
         });
       });
     }
+    const duration = await getVideoDurationInSeconds(createReadStream(this.filePath))
+    this.startTime = new Date().getTime();
+    this.endTime = new Date().getTime() + (duration * 1000);
     return createAudioResource(createReadStream(this.filePath), { metadata: this, inputType: StreamType.WebmOpus, });
   };
 

@@ -86,6 +86,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
         })
       },
       onError(error) {
+        console.warn(error)
         client.channels.fetch(subscription!.commandChannelId).then((channel) => {
           if (channel) (channel as TextChannel).send({ embeds: [new ErrorEmbed(interaction.client, "Error", error.message)] })
         })
