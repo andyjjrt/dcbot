@@ -9,4 +9,6 @@ import shuffle from "./shuffle"
 
 import cat from "./cat"
 
-export default [ping, search, play, loop, leave, skip, queue, shuffle, cat];
+import setting from "./setting"
+
+export default [ping, search, play, loop, leave, skip, queue, shuffle, cat, setting];

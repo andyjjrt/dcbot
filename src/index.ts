@@ -7,7 +7,7 @@ dotenv.config();
 const { TOKEN, CLIENT_ID } = process.env;
 
 import { play } from "./commands/play"
-import { History } from "./utils/db/schema";
+import { History, Setting } from "./utils/db/schema";
 
 // Create a new client instance
 export const client = new Client({
@@ -23,6 +23,7 @@ client.once(Events.ClientReady, (c) => {
     status: "online",
   });
   History.sync().then(() => console.log("History db synced."));
+  Setting.sync().then(() => console.log("Setting db synced."));
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {

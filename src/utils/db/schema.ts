@@ -11,3 +11,11 @@ export const History = sequelize.define('history', {
   },
   list: Sequelize.BOOLEAN
 });
+
+export const Setting = sequelize.define('setting', {
+  guildId: {
+    type: Sequelize.STRING,
+    primaryKey: true,
+  },
+  ytKey: Sequelize.STRING
+});
