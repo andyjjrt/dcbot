@@ -1,13 +1,15 @@
 // Require the necessary discord.js classes
 import { ActivityType, CommandInteraction, Events, GatewayIntentBits, Snowflake } from "discord.js";
-import Client from "./utils/Client"
 import { MusicSubscription } from "./utils/Subscription"
+import chalk from "chalk";
 import * as dotenv from "dotenv";
 dotenv.config();
 const { TOKEN, CLIENT_ID } = process.env;
 
+import Client from "./utils/Client"
 import { play } from "./commands/play"
 import { History, Setting } from "./utils/db/schema";
+
 
 // Create a new client instance
 export const client = new Client({
@@ -34,6 +36,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
     try {
+      console.log(
+        chalk.cyanBright(`[${new Date().toLocaleString()}]`)
+        + " "        
+        + chalk.green(interaction.member!.user.username + "#" + interaction.member!.user.discriminator)
+        + " from "
+        + chalk.yellow(interaction.guild!.name)
+        + " used "
+        + chalk.magenta(interaction.commandName + " " + interaction.options.data.map(option => `${option.name}:${option.value}`).join(" "))
+      )
       await command.execute(interaction);
     } catch (error) {
       console.error(error);
@@ -58,23 +69,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
     try {
       await command.autocomplete(interaction);
     } catch (error) {
-      console.error(error);
+      console.warn(error);
     }
-  }
-});
-
-
-client.on(Events.InteractionCreate, interaction => {
-  if (!interaction.isButton()) return;
-  console.log(interaction);
-});
-
-client.on(Events.InteractionCreate, async interaction => {
-  if (!interaction.isStringSelectMenu()) return;
-  if (new Date().getTime() - interaction.message.createdTimestamp > 60000) return;
-  if (interaction.customId === "#SearchSelectMenu") {
-    await interaction.deferReply();
-    play(interaction, `https://www.youtube.com/watch?v=${interaction.values[0]}`, false, false)
+  } else if (interaction.isStringSelectMenu()) {
+    if (new Date().getTime() - interaction.message.createdTimestamp > 60000) return;
+    if (interaction.customId === "#SearchSelectMenu") {
+      await interaction.deferReply();
+      play(interaction, `https://www.youtube.com/watch?v=${interaction.values[0]}`, false, false)
+    }
   }
 });
 

@@ -34,15 +34,6 @@ export default {
           const played = Math.floor((now - startTime) / 1000);
           return `${(played / 60) < 10 ? "0" : ""}${Math.floor(played / 60)}:${(played % 60) < 10 ? "0" : ""}${played % 60} / ${(estimate / 60) < 10 ? "0" : ""}${Math.floor(estimate / 60)}:${(estimate % 60) < 10 ? "0" : ""}${estimate % 60}`
         }
-
-        // const row = new ActionRowBuilder<ButtonBuilder>()
-        //   .addComponents(
-        //     new ButtonBuilder()
-        //       .setCustomId('primary')
-        //       .setLabel('Click me!')
-        //       .setStyle(ButtonStyle.Primary),
-        //   );
-
         await interaction.reply({
           embeds: [
             new InfoEmbed(interaction.client, ":arrow_forward:  Queue", `${current}\n\n:clock10:  \`${timeString()}\`\n\n${queue}${remain}`)
@@ -51,7 +42,6 @@ export default {
                 { name: 'Loop', value: subscription.loop, inline: true },
               )
           ],
-          // components: [row]
         })
       }
     } else {

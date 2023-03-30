@@ -24,6 +24,5 @@ export default {
     } else {
       await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
     }
-
   },
 };
