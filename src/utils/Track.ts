@@ -36,6 +36,7 @@ import * as dotenv from "dotenv";
 import { ChatInputCommandInteraction, MessageComponentInteraction } from 'discord.js';
 import { InfoEmbed } from './Embed';
 import { setInterval } from 'timers/promises';
+import { client } from '..';
 import { getVideoDurationInSeconds } from "get-video-duration"
 dotenv.config();
 const { MUSIC_DIR } = process.env;
@@ -106,10 +107,11 @@ export class Track implements TrackData {
         });
       });
     }
-    const duration = await getVideoDurationInSeconds(createReadStream(this.filePath))
+    const duration = await getVideoDurationInSeconds(this.filePath);
     this.startTime = new Date().getTime();
     this.endTime = new Date().getTime() + (duration * 1000);
-    return createAudioResource(createReadStream(this.filePath), { metadata: this, inputType: StreamType.WebmOpus, });
+    const stream = createReadStream(this.filePath);
+    return createAudioResource(stream, { metadata: this, inputType: StreamType.WebmOpus, });
   };
 
   /**
@@ -208,9 +210,9 @@ export class Track implements TrackData {
     }
     catch (e) {
       return {
-        title: "",
-        url: "",
-        thumbnail: "",
+        title: url,
+        url: url,
+        thumbnail: "https://memeprod.ap-south-1.linodeobjects.com/user-template/63e160366afc7f7a7a1e5de55fd0e38f.png",
         tracks: []
       }
     }
