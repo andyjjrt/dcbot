@@ -14,7 +14,7 @@ import { History } from '../utils/db/schema';
 export default {
   data: new SlashCommandBuilder()
     .setName("play")
-    .setDescription("Play a song from youtube")
+    .setDescription("Play song(s) from Youtube")
     .addStringOption(option =>
       option.setName("url").setDescription("Youtube link").setRequired(true).setAutocomplete(true)
     )
@@ -22,7 +22,7 @@ export default {
       option.setName("top").setDescription("Force play top")
     )
     .addBooleanOption(option =>
-      option.setName("shuffle").setDescription("Shuffle list when queue")
+      option.setName("shuffle").setDescription("Shuffle list before queue")
     )
   ,
   async execute(interaction: ChatInputCommandInteraction) {

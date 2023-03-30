@@ -6,7 +6,7 @@ import { subscriptions } from "..";
 export default {
   data: new SlashCommandBuilder()
     .setName("shuffle")
-    .setDescription("Shuffle whole queue"),
+    .setDescription("Shuffle current queue"),
   async execute(interaction: CommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);

@@ -5,7 +5,7 @@ import { ErrorEmbed, InfoEmbed } from "../utils/Embed";
 export default {
   data: new SlashCommandBuilder()
     .setName("leave")
-    .setDescription("Force bot to leave"),
+    .setDescription("Leave and clear queue"),
   async execute(interaction: CommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);

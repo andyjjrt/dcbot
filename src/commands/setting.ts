@@ -6,7 +6,7 @@ import { Setting } from '../utils/db/schema';
 export default {
   data: new SlashCommandBuilder()
     .setName("setting")
-    .setDescription("setting of this bot")
+    .setDescription("Setting of this bot")
     .addStringOption(option =>
       option.setName("ytkey").setDescription("Youtube API Key").setRequired(true)
     ),
