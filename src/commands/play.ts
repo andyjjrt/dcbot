@@ -1,5 +1,5 @@
 import { SuccessEmbed, PlayingEmbed, InfoEmbed } from './../utils/Embed';
-import { CommandInteraction, SlashCommandBuilder, GuildMember, TextChannel, BaseInteraction, ChatInputCommandInteraction, MessageComponentInteraction } from "discord.js";
+import { SlashCommandBuilder, GuildMember, TextChannel, ChatInputCommandInteraction, MessageComponentInteraction, AutocompleteInteraction } from "discord.js";
 import {
   joinVoiceChannel,
   entersState,
@@ -9,26 +9,43 @@ import { Track } from "../utils/Track";
 import { MusicSubscription } from "../utils/Subscription"
 import { subscriptions, client } from '../index';
 import { ErrorEmbed } from "../utils/Embed";
+import { History } from '../utils/db/schema';
 
 export default {
   data: new SlashCommandBuilder()
     .setName("play")
     .setDescription("Play a song from youtube")
     .addStringOption(option =>
-      option.setName("url").setDescription("YT link").setRequired(true)
+      option.setName("url").setDescription("Youtube link").setRequired(true).setAutocomplete(true)
     )
     .addBooleanOption(option =>
       option.setName("top").setDescription("Force play top")
     )
     .addBooleanOption(option =>
       option.setName("shuffle").setDescription("Shuffle list when queue")
-    ),
+    )
+  ,
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
     const url = interaction.options.get("url", true).value as string;
     const shuffle = interaction.options.get("shuffle")?.value ? true : false;
     const top = interaction.options.get("top")?.value ? true : false;
     await play(interaction, url, shuffle, top);
+  },
+  async autocomplete(interaction: AutocompleteInteraction) {
+    const userId = interaction.member!.user.id;
+    const history = await History.findAll({ where: { userId: userId } });
+    const focusedValue = interaction.options.getFocused();
+    const choices = history.map(his => ({
+      title: his.get("title") as string,
+      url: his.get("url") as string,
+      time: new Date(his.get("time") as string).getTime(),
+      list: his.get("list") as boolean
+    }))
+    const filtered = choices.sort((a, b) => a.time - b.time).filter(choice => choice.title.startsWith(focusedValue));
+    await interaction.respond(
+      filtered.map(choice => ({ name: `${choice.list ? "🎶" : "🎵"} ${choice.title}`, value: choice.url })),
+    );
   },
 };
 
@@ -103,6 +120,14 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
         if (subscription) subscription.enqueue(track);
       })
     }
+    if (list.title === "" || list.url === "" || list.thumbnail === "" || list.tracks.length == 0) throw new Error()
+    await History.upsert({
+      userId: interaction.member!.user.id,
+      title: list.title,
+      url: list.url,
+      time: new Date(),
+      list: list.tracks.length > 1
+    });
     await interaction.editReply({ embeds: [new SuccessEmbed(interaction.client, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(list.thumbnail)] });
   } catch (error) {
     console.warn(error);

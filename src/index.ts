@@ -7,6 +7,7 @@ dotenv.config();
 const { TOKEN, CLIENT_ID } = process.env;
 
 import { play } from "./commands/play"
+import { History } from "./utils/db/schema";
 
 // Create a new client instance
 export const client = new Client({
@@ -21,32 +22,42 @@ client.once(Events.ClientReady, (c) => {
     activities: [{ name: "/play", type: ActivityType.Listening }],
     status: "online",
   });
+  History.sync().then(() => console.log("History db synced."));
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-
-  const command = client.collection.get(interaction.commandName);
-
-  if (!command) {
-    console.error(`No command matching ${interaction.commandName} was found.`);
-    return;
-  }
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({
-        content: "There was an error while executing this command!",
-        ephemeral: true,
-      });
-    } else {
-      await interaction.reply({
-        content: "There was an error while executing this command!",
-        ephemeral: true,
-      });
+  if (interaction.isChatInputCommand()) {
+    const command = client.collection.get(interaction.commandName);
+    if (!command) {
+      console.error(`No command matching ${interaction.commandName} was found.`);
+      return;
+    }
+    try {
+      await command.execute(interaction);
+    } catch (error) {
+      console.error(error);
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({
+          content: "There was an error while executing this command!",
+          ephemeral: true,
+        });
+      } else {
+        await interaction.reply({
+          content: "There was an error while executing this command!",
+          ephemeral: true,
+        });
+      }
+    }
+  } else if (interaction.isAutocomplete()) {
+    const command = client.collection.get(interaction.commandName);
+    if (!command) {
+      console.error(`No command matching ${interaction.commandName} was found.`);
+      return;
+    }
+    try {
+      await command.autocomplete(interaction);
+    } catch (error) {
+      console.error(error);
     }
   }
 });

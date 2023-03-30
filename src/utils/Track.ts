@@ -168,7 +168,7 @@ export class Track implements TrackData {
 
           return {
             title: file.title as string,
-            url: file.url as string,
+            url: file.original_url as string,
             thumbnail: file.thumbnails[0].url,
             tracks: tracks
           };

@@ -21,6 +21,8 @@
     "get-video-duration": "^4.1.0",
     "libsodium-wrappers": "^0.7.11",
     "node-fetch": "2",
+    "sequelize": "^6.30.0",
+    "sqlite3": "^5.1.6",
     "yt-dlp-wrap": "^2.3.11",
     "ytdl-core": "^4.11.2"
   },
