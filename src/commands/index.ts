@@ -8,7 +8,8 @@ import queue from "./queue";
 import shuffle from "./shuffle"
 
 import cat from "./cat"
+import announce from "./announce"
 
 import setting from "./setting"
 
-export default [ping, search, play, loop, leave, skip, queue, shuffle, cat, setting];
+export default [ping, search, play, loop, leave, skip, queue, shuffle, cat, announce, setting];

@@ -1,5 +1,5 @@
 import Sequelize from "sequelize";
-import { sequelize } from "./index"
+import { sequelize, announce } from "./index"
 
 export const History = sequelize.define('history', {
   time: Sequelize.TIME,
@@ -18,4 +18,13 @@ export const Setting = sequelize.define('setting', {
     primaryKey: true,
   },
   ytKey: Sequelize.STRING
+});
+
+export const Announce = announce.define('announce', {
+  guildId: Sequelize.STRING,
+  title: {
+    type: Sequelize.STRING,
+    primaryKey: true,
+  },
+  url: Sequelize.STRING
 });

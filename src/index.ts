@@ -8,7 +8,7 @@ const { TOKEN, CLIENT_ID } = process.env;
 
 import Client from "./utils/Client"
 import { play } from "./commands/play"
-import { History, Setting } from "./utils/db/schema";
+import { History, Setting, Announce } from "./utils/db/schema";
 
 
 // Create a new client instance
@@ -26,6 +26,7 @@ client.once(Events.ClientReady, (c) => {
   });
   History.sync().then(() => console.log("History db synced."));
   Setting.sync().then(() => console.log("Setting db synced."));
+  Announce.sync().then(() => console.log("Announce db synced."));
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
