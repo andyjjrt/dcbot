@@ -13,8 +13,9 @@ export default {
   async execute(interaction: CommandInteraction) {
     await interaction.deferReply({ ephemeral: true });
     const isAdmin = (interaction.member!.permissions as PermissionsBitField).has(PermissionsBitField.Flags.Administrator);
-    if(!isAdmin) {
-      interaction.followUp({ embeds: [new ErrorEmbed(interaction.client, "Error", "You don't have permission to do so.")], ephemeral: true });
+    if (!isAdmin) {
+      await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client, "Error", "You don't have permission to do so.")], ephemeral: true });
+      return;
     }
     const guildId = interaction.guildId || "";
     const ytKey = interaction.options.get("ytkey", true).value as string;
