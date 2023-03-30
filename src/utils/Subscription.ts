@@ -70,10 +70,7 @@ export class MusicSubscription {
     this.queue = [];
 
     this.voiceConnection.on(VoiceConnectionStatus.Destroyed, () => {
-      (client as Client<true>).user.setPresence({
-        activities: [{ name: "/play", type: ActivityType.Listening }],
-        status: "online",
-      });
+
     });
 
     this.voiceConnection.on("stateChange", async (_: VoiceConnectionState, newState: VoiceConnectionState) => {
@@ -189,10 +186,6 @@ export class MusicSubscription {
       // Attempt to convert the Track into an AudioResource (i.e. start streaming the video)
       const resource = await this.currentPlaying.createAudioResource();
       this.audioPlayer.play(resource);
-      (client as Client<true>).user.setPresence({
-        activities: [{ name: this.currentPlaying.title, type: ActivityType.Playing }],
-        status: "online",
-      });
       this.queueLock = false;
     } catch (error) {
       // If an error occurred, try the next item of the queue instead
