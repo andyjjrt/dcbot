@@ -10,12 +10,13 @@ import Client from "./utils/Client"
 import { play } from "./commands/play"
 import { History, Setting, Announce } from "./utils/db/schema";
 import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
+import path from "path";
 
 
 // Create a new client instance
 export const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
-}, CLIENT_ID, TOKEN);
+}, CLIENT_ID, TOKEN, path.join(__dirname, "commands"));
 
 export const subscriptions = new Map<Snowflake, MusicSubscription>();
 
