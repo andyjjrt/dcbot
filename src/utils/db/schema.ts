@@ -1,7 +1,7 @@
 import Sequelize from "sequelize";
-import { sequelize, announce } from "./index"
+import { history, announce, setting, record } from "./index"
 
-export const History = sequelize.define('history', {
+export const History = history.define('history', {
   time: Sequelize.TIME,
   userId: Sequelize.STRING,
   title: Sequelize.STRING,
@@ -12,7 +12,15 @@ export const History = sequelize.define('history', {
   list: Sequelize.BOOLEAN
 });
 
-export const Setting = sequelize.define('setting', {
+export const Record = record.define('record', {
+  time: Sequelize.TIME,
+  guildId: Sequelize.STRING,
+  userId: Sequelize.STRING,
+  title: Sequelize.STRING,
+  url: Sequelize.STRING,
+});
+
+export const Setting = setting.define('setting', {
   guildId: {
     type: Sequelize.STRING,
     primaryKey: true,

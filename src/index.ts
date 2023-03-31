@@ -8,7 +8,7 @@ const { TOKEN, CLIENT_ID } = process.env;
 
 import Client from "./utils/Client"
 import { play } from "./commands/play"
-import { History, Setting, Announce } from "./utils/db/schema";
+import { initDB } from "./utils/db";
 import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import path from "path";
 
@@ -31,9 +31,7 @@ client.once(Events.ClientReady, (c) => {
     activities: [{ name: "/play", type: ActivityType.Listening }],
     status: "online",
   });
-  History.sync().then(() => console.log(chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) + " History db synced"));
-  Setting.sync().then(() => console.log(chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) + " Setting db synced"));
-  Announce.sync().then(() => console.log(chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) + " Announce db synced"));
+  initDB().then((dbs) => console.log(chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) + ` ${dbs.length} db synced`))
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
