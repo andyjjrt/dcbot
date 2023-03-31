@@ -32,13 +32,11 @@ import ytdlCore from 'ytdl-core';
 import { exec } from 'child_process';
 import fs, { createReadStream } from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice"
-import * as dotenv from "dotenv";
 import { ChatInputCommandInteraction, MessageComponentInteraction } from 'discord.js';
 import { InfoEmbed } from './Embed';
 import { setInterval } from 'timers/promises';
 import { client } from '..';
 import { getVideoDurationInSeconds } from "get-video-duration"
-dotenv.config();
 const { MUSIC_DIR } = process.env;
 
 /**

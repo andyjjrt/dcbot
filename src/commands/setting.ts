@@ -3,8 +3,6 @@ import { SlashCommandBuilder, PermissionsBitField, ChatInputCommandInteraction }
 import { client } from "../index";
 import { Setting } from '../utils/db/schema';
 import { exec } from 'child_process';
-import * as dotenv from "dotenv";
-dotenv.config();
 const { MUSIC_DIR } = process.env;
 
 export default {
