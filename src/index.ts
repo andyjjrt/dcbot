@@ -9,12 +9,12 @@ const { TOKEN, CLIENT_ID } = process.env;
 import Client from "./utils/Client"
 import { play } from "./commands/play"
 import { History, Setting, Announce } from "./utils/db/schema";
-import { InfoEmbed } from "./utils/Embed";
+import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 
 
 // Create a new client instance
 export const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 }, CLIENT_ID, TOKEN);
 
 export const subscriptions = new Map<Snowflake, MusicSubscription>();
@@ -32,6 +32,11 @@ client.once(Events.ClientReady, (c) => {
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isChatInputCommand()) {
+    const commandChannel = interaction.channel;
+    if (!(commandChannel instanceof TextChannel)) {
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Please use command in a **Text Channel**")] });
+      return;
+    }
     const command = client.collection.get(interaction.commandName);
     if (!command) {
       console.error(`No command matching ${interaction.commandName} was found.`);
@@ -85,12 +90,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 client.on(Events.VoiceStateUpdate, (oldState, newState) => {
-  if (oldState.channelId === newState.channelId) {
-    console.log('a user has not moved!')
-  }
-  if (oldState.channelId != null && newState.channelId != null && newState.channelId != oldState.channelId) {
-    console.log('a user switched channels')
-  }
+  // if (oldState.channelId === newState.channelId) {
+  //   console.log('a user has not moved!')
+  // }
+  // if (oldState.channelId != null && newState.channelId != null && newState.channelId != oldState.channelId) {
+  //   console.log('a user switched channels')
+  // }
   if (oldState.channelId === null) {
     console.log(
       chalk.cyanBright(`[${new Date().toLocaleString()}]`)
@@ -105,12 +110,10 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
     )
     const guildId = oldState.guild.id
     const subscription = subscriptions.get(guildId);
-    if(subscription && newState.member!.user.id !== client.user.id) {
-      if(subscription.leaveTimer) {
+    if (subscription && newState.member!.user.id !== client.user.id) {
+      if (subscription.leaveTimer) {
         subscription.leaveTimer = null;
-        client.channels.fetch(subscription.commandChannelId).then((channel) => {
-          if (channel) (channel as TextChannel).send({ embeds: [new InfoEmbed(client, ":partying_face:  Yeah~", `**${newState.member!.user.username}** is back with me.`)] })
-        });
+        subscription.commandChannel.send({ embeds: [new InfoEmbed(client, ":partying_face:  Yeah~", `**${newState.member!.user.username}** is back with me.`)] })
       }
     }
   }
@@ -130,16 +133,12 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
     const subscription = subscriptions.get(guildId);
     if (subscription && oldState.member!.user.id !== client.user.id) {
       if (oldState.channel!.members.size <= 1) {
-        client.channels.fetch(subscription.commandChannelId).then((channel) => {
-          if (channel) (channel as TextChannel).send({ embeds: [new InfoEmbed(client, ":face_holding_back_tears:  Feeling alone", `I'll leave in 1 minute if no one else is here`)] })
-        });
+        subscription.commandChannel.send({ embeds: [new InfoEmbed(client, ":face_holding_back_tears:  Feeling alone", `I'll leave in 1 minute if no one else is here`)] })
         subscription.leaveTimer = setTimeout(() => {
           if (oldState.channel!.members.size <= 1) {
+            subscription.commandChannel.send({ embeds: [new InfoEmbed(client, ":wave:  Left", "I'm right.")] })
             subscription.voiceConnection.destroy();
             subscriptions.delete(guildId);
-            client.channels.fetch(subscription.commandChannelId).then((channel) => {
-              if (channel) (channel as TextChannel).send({ embeds: [new InfoEmbed(client, ":wave:  Left", "I'm right.")] })
-            })
           }
         }, 60000);
       }

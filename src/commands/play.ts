@@ -1,5 +1,5 @@
 import { SuccessEmbed, PlayingEmbed, InfoEmbed } from './../utils/Embed';
-import { SlashCommandBuilder, GuildMember, TextChannel, ChatInputCommandInteraction, MessageComponentInteraction, AutocompleteInteraction } from "discord.js";
+import { SlashCommandBuilder, GuildMember, TextChannel, ChatInputCommandInteraction, MessageComponentInteraction, AutocompleteInteraction, GuildTextThreadManager, Role } from "discord.js";
 import {
   joinVoiceChannel,
   entersState,
@@ -61,7 +61,11 @@ export default {
  */
 export const play = async (interaction: ChatInputCommandInteraction | MessageComponentInteraction, url: string, shuffle: boolean, top: boolean) => {
   let subscription = subscriptions.get(interaction.guildId || "");
-  const commandChannelId = interaction.channelId;
+  const commandChannel = interaction.channel;
+  if (!(commandChannel instanceof TextChannel)) {
+    await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client, "Error", "Please use this command in a **Text Channel**")] });
+    return;
+  }
   if (!subscription) {
     if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
       const channel = interaction.member.voice.channel;
@@ -71,7 +75,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
           guildId: channel.guild.id,
           adapterCreator: channel.guild.voiceAdapterCreator,
         }),
-        commandChannelId
+        commandChannel
       );
       subscription.voiceConnection.on('error', console.error);
       subscriptions.set(interaction.guildId || "", subscription);
@@ -98,15 +102,11 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
     await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "")] }).catch(console.error);
     const list = await Track.from(url, {
       onStart(url, title, thumbnail) {
-        client.channels.fetch(subscription!.commandChannelId).then((channel) => {
-          if (channel) (channel as TextChannel).send({ embeds: [new PlayingEmbed(interaction.client, title, url).setThumbnail(thumbnail)] })
-        })
+        subscription!.logChannel?.send({ embeds: [new PlayingEmbed(interaction.client, title, url).setThumbnail(thumbnail)] })
       },
       onError(error) {
         console.error(error)
-        client.channels.fetch(subscription!.commandChannelId).then((channel) => {
-          if (channel) (channel as TextChannel).send({ embeds: [new ErrorEmbed(interaction.client, "Error", error.message)] })
-        })
+        subscription!.logChannel?.send({ embeds: [new ErrorEmbed(interaction.client, "Error", error.message)] })
       },
     }, interaction);
     // Enqueue the track and reply a success message to the user
@@ -121,6 +121,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
       })
     }
     if (list.title === "" || list.url === "" || list.thumbnail === "" || list.tracks.length == 0) throw new Error()
+    subscription.logChannel?.members.add(interaction.member!.user.id, `${interaction.member!.user.id} queued ${list.title}`)
     await History.upsert({
       userId: interaction.member!.user.id,
       title: list.title,

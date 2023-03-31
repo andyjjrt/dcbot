@@ -44,7 +44,7 @@ import {
 import type { Track } from './Track';
 import { promisify } from 'node:util';
 import { subscriptions, client } from "..";
-import { ActivityType, Client, TextChannel } from 'discord.js';
+import { ActivityType, Client, MessageCollector, TextChannel, ThreadChannel } from 'discord.js';
 
 const wait = promisify(setTimeout);
 
@@ -55,7 +55,8 @@ const wait = promisify(setTimeout);
 export class MusicSubscription {
   public readonly voiceConnection: VoiceConnection;
   public readonly audioPlayer: AudioPlayer;
-  public readonly commandChannelId: string;
+  public readonly commandChannel: TextChannel;
+  public logChannel: ThreadChannel | null = null;
   public leaveTimer: NodeJS.Timeout | null;
   public queue: Track[];
   public currentPlaying: Track | null = null;
@@ -64,10 +65,10 @@ export class MusicSubscription {
   public readyLock = false;
   public skipFlag = false;
 
-  public constructor(voiceConnection: VoiceConnection, commandChannelId: string) {
+  public constructor(voiceConnection: VoiceConnection, commandChannel: TextChannel) {
     this.voiceConnection = voiceConnection;
     this.audioPlayer = createAudioPlayer();
-    this.commandChannelId = commandChannelId;
+    this.commandChannel = commandChannel;
     this.leaveTimer = null;
     this.queue = [];
 
@@ -116,6 +117,19 @@ export class MusicSubscription {
     this.audioPlayer.on('error', (error: { resource: any; }) => (error.resource as AudioResource<Track>).metadata.onError(new Error(error.resource)));
 
     voiceConnection.subscribe(this.audioPlayer);
+
+    this.commandChannel.threads.fetch().then(threads => {
+      const channel = threads.threads.find(t => t.ownerId === client.user.id);
+      return channel || this.commandChannel.threads.create({
+        name: `🎶 Logs`,
+      })
+    }).then(async channel => {
+      this.logChannel = channel;
+      const members = await channel.members.fetch();
+      return Promise.all(members.map(member => channel.members.remove(member.id)));
+    }).catch(error => {
+      console.error(error);
+    });
   }
 
   /**
@@ -154,9 +168,7 @@ export class MusicSubscription {
     // If the queue is locked (already being processed), is empty, or the audio player is already playing something, return
 
     if (!this.currentPlaying && this.queue.length === 0) {
-      await client.channels.fetch(this.commandChannelId).then((channel) => {
-        if (channel) (channel as TextChannel).send({embeds: [new InfoEmbed((client as Client), ":wave:  Leaving", "bye")]})
-      })
+      this.commandChannel.send({ embeds: [new InfoEmbed((client as Client), ":wave:  Leaving", "bye")] })
       subscriptions.delete(this.voiceConnection.joinConfig.guildId);
       this.voiceConnection.destroy();
       return;
@@ -179,7 +191,6 @@ export class MusicSubscription {
       this.currentPlaying = this.queue.shift()!;
     }
     this.skipFlag = false;
-
     try {
       // Attempt to convert the Track into an AudioResource (i.e. start streaming the video)
       const resource = await this.currentPlaying.createAudioResource();
