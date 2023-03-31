@@ -21,7 +21,6 @@ export const client = new Client({
 export const subscriptions = new Map<Snowflake, MusicSubscription>();
 
 client.once(Events.ClientReady, (c) => {
-  console.log(`Ready! Logged in as ${c.user.tag}`);
   console.log(
     chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`)
     + " Logged in as "
