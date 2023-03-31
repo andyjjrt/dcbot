@@ -22,13 +22,18 @@ export const subscriptions = new Map<Snowflake, MusicSubscription>();
 
 client.once(Events.ClientReady, (c) => {
   console.log(`Ready! Logged in as ${c.user.tag}`);
+  console.log(
+    chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`)
+    + " Logged in as "
+    + chalk.green(c.user.tag)
+  )
   c.user.setPresence({
     activities: [{ name: "/play", type: ActivityType.Listening }],
     status: "online",
   });
-  History.sync().then(() => console.log("History db synced."));
-  Setting.sync().then(() => console.log("Setting db synced."));
-  Announce.sync().then(() => console.log("Announce db synced."));
+  History.sync().then(() => console.log(chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) + " History db synced"));
+  Setting.sync().then(() => console.log(chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) + " Setting db synced"));
+  Announce.sync().then(() => console.log(chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) + " Announce db synced"));
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
