@@ -1,7 +1,7 @@
 import { Client, Collection, ClientOptions, REST, Routes } from "discord.js"
 import commands from "../commands";
 
-export default class MyClient extends Client {
+export default class MyClient extends Client<true> {
   collection: Collection<string, any> // use correct type :)
   private _clientId: string
   private _token: string

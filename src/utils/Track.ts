@@ -101,7 +101,7 @@ export class Track implements TrackData {
       await new Promise((resolve, reject) => {
         exec(`yt-dlp -o "${MUSIC_DIR}/%(id)s.%(ext)s" --format "bestaudio" --quiet --file-access-retries 1 ${this.url}`, (error, stdout, stderr) => {
           if (error) {
-            console.warn(error);
+            console.error(error);
           }
           resolve(stdout);
         });
@@ -129,13 +129,13 @@ export class Track implements TrackData {
       try {
         const valid = ytdlCore.validateURL(url);
         if (!valid) throw new Error("not a song")
-        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching Song")] }).catch(console.warn);
+        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching Song")] }).catch(console.error);
         const res = await new Promise((resolve, reject) => {
           exec(`yt-dlp --dump-single-json --no-abort-on-error ${url} > ${MUSIC_DIR}/info.json`, (error, stdout, stderr) => {
             resolve(stdout);
           });
         }).then(async () => {
-          await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving song")] }).catch(console.warn);
+          await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving song")] }).catch(console.error);
           const file = await JSON.parse(fs.readFileSync(`${MUSIC_DIR}/info.json`).toString());
           const filePath = `${MUSIC_DIR}/${file.id}.webm`
 
@@ -160,13 +160,13 @@ export class Track implements TrackData {
 
         return res;
       } catch (e) {
-        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching list")] }).catch(console.warn);
+        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching list")] }).catch(console.error);
         const res = await new Promise((resolve, reject) => {
           exec(`yt-dlp --dump-single-json --no-abort-on-error --flat-playlist ${url} > ${MUSIC_DIR}/info.json`, (error, stdout, stderr) => {
             resolve(stdout);
           });
         }).then(async () => {
-          await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving songs")] }).catch(console.warn);
+          await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving songs")] }).catch(console.error);
           const file = await JSON.parse(fs.readFileSync(`${MUSIC_DIR}/info.json`).toString());
           const playlist = file.entries;
           let tracks = new Array<Track>();
@@ -191,9 +191,7 @@ export class Track implements TrackData {
           })
 
           for await (const startTime of setInterval(2000, Date.now())) {
-            const now = Date.now();
-            console.log(now, " ", count, "/", total);
-            await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", `Resolving songs ${count} / ${total}`)] }).catch(console.warn);
+            await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", `Resolving songs ${count} / ${total}`)] }).catch(console.error);
             if (count >= total)
               break;
           }

@@ -73,7 +73,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
         }),
         commandChannelId
       );
-      subscription.voiceConnection.on('error', console.warn);
+      subscription.voiceConnection.on('error', console.error);
       subscriptions.set(interaction.guildId || "", subscription);
     }
   }
@@ -88,14 +88,14 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
   try {
     await entersState(subscription.voiceConnection, VoiceConnectionStatus.Ready, 20e3);
   } catch (error) {
-    console.warn(error);
+    console.error(error);
     await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client, "Error", "Failed to join voice channel within 20 seconds, please try again later!")] });
     return;
   }
 
   try {
     // Attempt to create a Track from the user's video URL
-    await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "")] }).catch(console.warn);
+    await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "")] }).catch(console.error);
     const list = await Track.from(url, {
       onStart(url, title, thumbnail) {
         client.channels.fetch(subscription!.commandChannelId).then((channel) => {
@@ -103,7 +103,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
         })
       },
       onError(error) {
-        console.warn(error)
+        console.error(error)
         client.channels.fetch(subscription!.commandChannelId).then((channel) => {
           if (channel) (channel as TextChannel).send({ embeds: [new ErrorEmbed(interaction.client, "Error", error.message)] })
         })
@@ -130,7 +130,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
     });
     await interaction.editReply({ embeds: [new SuccessEmbed(interaction.client, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(list.thumbnail)] });
   } catch (error) {
-    console.warn(error);
+    console.error(error);
     await interaction.editReply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Failed to play track, please try again later!\n\n" + error)] });
   }
 }

@@ -56,6 +56,7 @@ export class MusicSubscription {
   public readonly voiceConnection: VoiceConnection;
   public readonly audioPlayer: AudioPlayer;
   public readonly commandChannelId: string;
+  public leaveTimer: NodeJS.Timeout | null;
   public queue: Track[];
   public currentPlaying: Track | null = null;
   public loop: "off" | "one" | "queue" = "off";
@@ -67,11 +68,8 @@ export class MusicSubscription {
     this.voiceConnection = voiceConnection;
     this.audioPlayer = createAudioPlayer();
     this.commandChannelId = commandChannelId;
+    this.leaveTimer = null;
     this.queue = [];
-
-    this.voiceConnection.on(VoiceConnectionStatus.Destroyed, () => {
-
-    });
 
     this.voiceConnection.on("stateChange", async (_: VoiceConnectionState, newState: VoiceConnectionState) => {
       const guildId = voiceConnection.joinConfig.guildId;

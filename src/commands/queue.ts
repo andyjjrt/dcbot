@@ -6,7 +6,8 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  Events
+  Events,
+  ChatInputCommandInteraction
 } from "discord.js";
 import { subscriptions, client } from "..";
 
@@ -14,7 +15,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("queue")
     .setDescription("Get current queue"),
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);
     if (subscription) {

@@ -1,5 +1,5 @@
 // Require the necessary discord.js classes
-import { ActivityType, CommandInteraction, Events, GatewayIntentBits, Snowflake } from "discord.js";
+import { ActivityType, Events, GatewayIntentBits, Snowflake, TextChannel, time } from "discord.js";
 import { MusicSubscription } from "./utils/Subscription"
 import chalk from "chalk";
 import * as dotenv from "dotenv";
@@ -9,6 +9,7 @@ const { TOKEN, CLIENT_ID } = process.env;
 import Client from "./utils/Client"
 import { play } from "./commands/play"
 import { History, Setting, Announce } from "./utils/db/schema";
+import { InfoEmbed } from "./utils/Embed";
 
 
 // Create a new client instance
@@ -39,12 +40,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
     try {
       console.log(
         chalk.cyanBright(`[${new Date().toLocaleString()}]`)
-        + " "        
+        + " "
+        + chalk.cyanBright("[COMMAND]")
+        + " "
         + chalk.green(interaction.member!.user.username + "#" + interaction.member!.user.discriminator)
-        + " from "
-        + chalk.yellow(interaction.guild!.name)
         + " used "
-        + chalk.magenta(interaction.commandName + " " + interaction.options.data.map(option => `${option.name}:${option.value}`).join(" "))
+        + chalk.yellow(interaction.commandName)
+        + " in "
+        + chalk.magenta(interaction.guild!.name)
       )
       await command.execute(interaction);
     } catch (error) {
@@ -55,7 +58,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
           ephemeral: true,
         });
       } else {
-        await interaction.reply({
+        await interaction.followUp({
           content: "There was an error while executing this command!",
           ephemeral: true,
         });
@@ -70,7 +73,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     try {
       await command.autocomplete(interaction);
     } catch (error) {
-      console.warn(error);
+      console.error(error);
     }
   } else if (interaction.isStringSelectMenu()) {
     if (new Date().getTime() - interaction.message.createdTimestamp > 60000) return;
@@ -80,5 +83,70 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 });
+
+client.on(Events.VoiceStateUpdate, (oldState, newState) => {
+  if (oldState.channelId === newState.channelId) {
+    console.log('a user has not moved!')
+  }
+  if (oldState.channelId != null && newState.channelId != null && newState.channelId != oldState.channelId) {
+    console.log('a user switched channels')
+  }
+  if (oldState.channelId === null) {
+    console.log(
+      chalk.cyanBright(`[${new Date().toLocaleString()}]`)
+      + " "
+      + chalk.cyanBright("[USER]")
+      + " "
+      + chalk.green(newState.member!.user.username + "#" + newState.member!.user.discriminator)
+      + " joined "
+      + chalk.yellow(newState.channel!.name)
+      + " in "
+      + chalk.magenta(newState.guild!.name)
+    )
+    const guildId = oldState.guild.id
+    const subscription = subscriptions.get(guildId);
+    if(subscription && newState.member!.user.id !== client.user.id) {
+      if(subscription.leaveTimer) {
+        subscription.leaveTimer = null;
+        client.channels.fetch(subscription.commandChannelId).then((channel) => {
+          if (channel) (channel as TextChannel).send({ embeds: [new InfoEmbed(client, ":partying_face:  Yeah~", `**${newState.member!.user.username}** is back with me.`)] })
+        });
+      }
+    }
+  }
+  if (newState.channelId === null) {
+    console.log(
+      chalk.cyanBright(`[${new Date().toLocaleString()}]`)
+      + " "
+      + chalk.cyanBright("[USER]")
+      + " "
+      + chalk.green(oldState.member!.user.username + "#" + oldState.member!.user.discriminator)
+      + " left "
+      + chalk.yellow(oldState.channel!.name)
+      + " in "
+      + chalk.magenta(oldState.guild!.name)
+    )
+    const guildId = oldState.guild.id
+    const subscription = subscriptions.get(guildId);
+    if (subscription && oldState.member!.user.id !== client.user.id) {
+      if (oldState.channel!.members.size <= 1) {
+        client.channels.fetch(subscription.commandChannelId).then((channel) => {
+          if (channel) (channel as TextChannel).send({ embeds: [new InfoEmbed(client, ":face_holding_back_tears:  Feeling alone", `I'll leave in 1 minute if no one else is here`)] })
+        });
+        subscription.leaveTimer = setTimeout(() => {
+          if (oldState.channel!.members.size <= 1) {
+            subscription.voiceConnection.destroy();
+            subscriptions.delete(guildId);
+            client.channels.fetch(subscription.commandChannelId).then((channel) => {
+              if (channel) (channel as TextChannel).send({ embeds: [new InfoEmbed(client, ":wave:  Left", "I'm right.")] })
+            })
+          }
+        }, 60000);
+      }
+    }
+
+  }
+
+})
 
 client.login(TOKEN);
