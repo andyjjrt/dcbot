@@ -7,6 +7,6 @@ export default {
     .setName("ping")
     .setDescription("Simple ping pong game"),
   async execute(interaction: CommandInteraction) {
-    await interaction.reply({ embeds: [new InfoEmbed(interaction.client, ":ping_pong:  Pong", `Ball flew back in ${client.ws.ping}ms`)] });
+    await interaction.reply({ embeds: [new InfoEmbed(interaction.client.user, ":ping_pong:  Pong", `Ball flew back in ${client.ws.ping}ms`)] });
   },
 };

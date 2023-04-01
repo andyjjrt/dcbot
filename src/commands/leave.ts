@@ -14,15 +14,15 @@ export default {
         if (subscription.voiceConnection.joinConfig.channelId === interaction.member.voice.channelId) {
           subscription.voiceConnection.destroy();
           subscriptions.delete(interaction.guildId);
-          await interaction.reply({ embeds: [new InfoEmbed(interaction.client, ":wave:  Left", "I'm right.")] });
+          await interaction.reply({ embeds: [new InfoEmbed(interaction.client.user, ":wave:  Left", "I'm right.")] });
         }else {
-          await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "You're not in the same voice channel with bot!")] });
+          await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're not in the same voice channel with bot!")] });
         }
       }else {
-        await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "You're not in a voice channel!")] });
+        await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're not in a voice channel!")] });
       }
     } else {
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Not playing in this server!")] });
     }
   },
 };

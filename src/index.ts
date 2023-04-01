@@ -41,7 +41,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isChatInputCommand()) {
     const commandChannel = interaction.channel;
     if (!(commandChannel instanceof TextChannel)) {
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Please use command in a **Text Channel**")] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Please use command in a **Text Channel**")] });
       return;
     }
     const command = client.collection.get(interaction.commandName);
@@ -120,7 +120,7 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
     if (subscription && newState.member!.user.id !== client.user.id) {
       if (subscription.leaveTimer) {
         subscription.leaveTimer = null;
-        subscription.commandChannel.send({ embeds: [new InfoEmbed(client, ":partying_face:  Yeah~", `**${newState.member!.user.username}** is back with me.`)] })
+        subscription.commandChannel.send({ embeds: [new InfoEmbed(client.user, ":partying_face:  Yeah~", `**${newState.member!.user.username}** is back with me.`)] })
       }
     }
   }
@@ -140,10 +140,10 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
     const subscription = subscriptions.get(guildId);
     if (subscription && oldState.member!.user.id !== client.user.id) {
       if (oldState.channel!.members.size <= 1) {
-        subscription.commandChannel.send({ embeds: [new InfoEmbed(client, ":face_holding_back_tears:  Feeling alone", `I'll leave in 1 minute if no one else is here`)] })
+        subscription.commandChannel.send({ embeds: [new InfoEmbed(client.user, ":face_holding_back_tears:  Feeling alone", `I'll leave in 1 minute if no one else is here`)] })
         subscription.leaveTimer = setTimeout(() => {
           if (oldState.channel!.members.size <= 1) {
-            subscription.commandChannel.send({ embeds: [new InfoEmbed(client, ":wave:  Left", "I'm right.")] })
+            subscription.commandChannel.send({ embeds: [new InfoEmbed(client.user, ":wave:  Left", "I'm right.")] })
             subscription.voiceConnection.destroy();
             subscriptions.delete(guildId);
           }

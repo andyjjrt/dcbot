@@ -168,7 +168,7 @@ export class MusicSubscription {
     // If the queue is locked (already being processed), is empty, or the audio player is already playing something, return
 
     if (!this.currentPlaying && this.queue.length === 0) {
-      this.commandChannel.send({ embeds: [new InfoEmbed((client as Client), ":wave:  Leaving", "bye")] })
+      this.commandChannel.send({ embeds: [new InfoEmbed(client.user, ":wave:  Leaving", "bye")] })
       subscriptions.delete(this.voiceConnection.joinConfig.guildId);
       this.voiceConnection.destroy();
       return;

@@ -35,7 +35,7 @@ export default {
     await interaction.deferReply({ ephemeral: true });
     const isAdmin = (interaction.member!.permissions as PermissionsBitField).has(PermissionsBitField.Flags.Administrator);
     if (!isAdmin) {
-      await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client, "Error", "You don't have permission to do so.")], ephemeral: true });
+      await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "You don't have permission to do so.")], ephemeral: true });
       return;
     }
     if (subcommand === "ytkey") {
@@ -45,10 +45,10 @@ export default {
         guildId: guildId,
         ytKey: key,
       });
-      await interaction.followUp({ embeds: [new SuccessEmbed(interaction.client, "Success", `ytKet changed to || \`${key}\` ||`)], ephemeral: true });
+      await interaction.followUp({ embeds: [new SuccessEmbed(interaction.client.user, "Success", `ytKet changed to || \`${key}\` ||`)], ephemeral: true });
     } else if (subcommand === "refresh") {
       const commands = await client.refreshCommands();
-      await interaction.followUp({ embeds: [new SuccessEmbed(interaction.client, "Success", `${commands} commands refreshed`)], ephemeral: true });
+      await interaction.followUp({ embeds: [new SuccessEmbed(interaction.client.user, "Success", `${commands} commands refreshed`)], ephemeral: true });
     } else if (subcommand === "buffer") {
       const res = await new Promise((resolve, reject) => {
         exec(`du --max-depth=0 -h ${MUSIC_DIR}`, (error, stdout, stderr) => {
@@ -56,7 +56,7 @@ export default {
         });
       });
       await interaction.followUp({
-        embeds: [new InfoEmbed(interaction.client, ":man_shrugging:  Bump!", `Local music buffer folder size is ${(res as string).split("\t")[0]}`)],
+        embeds: [new InfoEmbed(interaction.client.user, ":man_shrugging:  Bump!", `Local music buffer folder size is ${(res as string).split("\t")[0]}`)],
         ephemeral: true
       });
     }

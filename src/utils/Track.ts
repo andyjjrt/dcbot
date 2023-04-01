@@ -32,7 +32,7 @@ import ytdlCore from 'ytdl-core';
 import { exec } from 'child_process';
 import fs, { createReadStream } from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice"
-import { ChatInputCommandInteraction, MessageComponentInteraction } from 'discord.js';
+import { APIUser, ChatInputCommandInteraction, MessageComponentInteraction, User } from 'discord.js';
 import { InfoEmbed } from './Embed';
 import { setInterval } from 'timers/promises';
 import { client } from '..';
@@ -47,6 +47,7 @@ export interface TrackData {
   title: string;
   thumbnail: string;
   filePath: string;
+  user: User | APIUser;
   startTime: number;
   endTime: number;
   onStart: (url: string, title: string, thumbnail: string) => void;
@@ -69,18 +70,20 @@ export class Track implements TrackData {
   public readonly title: string;
   public readonly thumbnail: string;
   public readonly filePath: string;
+  public readonly user: User | APIUser;
   public startTime: number;
   public endTime: number;
   public readonly onStart: (url: string, title: string, thumbnail: string) => void;
   public readonly onError: (error: Error) => void;
 
   private constructor(
-    { url, title, thumbnail, filePath, onStart, onError }:
+    { url, title, thumbnail, filePath, onStart, onError, user }:
       {
         url: string;
         title: string;
         thumbnail: string;
         filePath: string;
+        user: User | APIUser;
         onStart: (url: string, title: string, thumbnail: string) => void;
         onError: (error: Error) => void;
       }) {
@@ -88,6 +91,7 @@ export class Track implements TrackData {
     this.title = title;
     this.thumbnail = thumbnail;
     this.filePath = filePath;
+    this.user = user;
     this.onStart = onStart;
     this.onError = onError;
     this.startTime = new Date().getTime();
@@ -119,7 +123,7 @@ export class Track implements TrackData {
    *
    * @returns The created Track
    */
-  public static async from(url: string, methods: Pick<Track, 'onStart' | 'onError'>, interaction: ChatInputCommandInteraction | MessageComponentInteraction): Promise<{ title: string, url: string, thumbnail: string, tracks: Track[] }> {
+  public static async from(url: string, methods: Pick<Track, 'onStart' | 'onError'>, interaction: ChatInputCommandInteraction | MessageComponentInteraction): Promise<{ title: string, url: string, thumbnail: string, user: User | APIUser, tracks: Track[] }> {
     const defaultHandler = {
       onStart(url: string, title: string, thumbnail: string) {
         methods.onStart(url, title, thumbnail);
@@ -130,13 +134,13 @@ export class Track implements TrackData {
     }
 
     try {
-      await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching data")] }).catch(console.error);
+      await interaction.editReply({ embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "Fetching data")] }).catch(console.error);
       const res = await new Promise((resolve, reject) => {
         exec(`yt-dlp --dump-single-json --no-abort-on-error ${url} > ${MUSIC_DIR}/info.json`, (error, stdout, stderr) => {
           resolve(stdout);
         });
       }).then(async () => {
-        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving data")] }).catch(console.error);
+        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "Resolving data")] }).catch(console.error);
         const file = await JSON.parse(fs.readFileSync(`${MUSIC_DIR}/info.json`).toString());
         const filePath = `${MUSIC_DIR}/${file.id}.webm`
         let tracks: Track[] = [];
@@ -145,18 +149,18 @@ export class Track implements TrackData {
         if (file.entries instanceof Array) {
           file.entries.map((track: any) => {
             const filePath = `${MUSIC_DIR}/${track.id}.webm`
-            tracks.push(new Track({ title: track.title, url: track.original_url, filePath, thumbnail: track.thumbnails[0].url, ...defaultHandler }));
+            tracks.push(new Track({ title: track.title, url: track.original_url, filePath, thumbnail: track.thumbnails[0].url, user: interaction.member!.user,  ...defaultHandler }));
             count++;
           })
 
         } else {
-          tracks.push(new Track({ title: file.title, url: file.original_url, filePath, thumbnail: file.thumbnails[0].url, ...defaultHandler }));
+          tracks.push(new Track({ title: file.title, url: file.original_url, filePath, thumbnail: file.thumbnails[0].url, user: interaction.member!.user, ...defaultHandler }));
           count++;
         }
 
         if (count < total) {
           for await (const startTime of setInterval(2000, Date.now())) {
-            await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", `Resolving songs ${count} / ${total}`)] }).catch(console.error);
+            await interaction.editReply({ embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", `Resolving songs ${count} / ${total}`)] }).catch(console.error);
             if (count >= total)
               break;
           }
@@ -166,6 +170,7 @@ export class Track implements TrackData {
           title: file.title as string,
           url: file.original_url as string,
           thumbnail: file.thumbnails[0].url,
+          user: interaction.member!.user,
           tracks: tracks
         };
       })
@@ -178,6 +183,7 @@ export class Track implements TrackData {
         title: url,
         url: url,
         thumbnail: "https://memeprod.ap-south-1.linodeobjects.com/user-template/63e160366afc7f7a7a1e5de55fd0e38f.png",
+        user: interaction.member!.user,
         tracks: []
       }
     }

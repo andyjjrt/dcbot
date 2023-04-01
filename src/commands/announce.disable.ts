@@ -46,7 +46,7 @@ export default {
       await interaction.followUp({
         embeds: [
           new SuccessEmbed(
-            interaction.client,
+            interaction.client.user,
             "Success",
             `**${title}** ${url}`
           )
@@ -57,7 +57,7 @@ export default {
       await interaction.followUp({
         embeds: [
           new InfoEmbed(
-            interaction.client,
+            interaction.client.user,
             ":information_source:  **Announce List**",
             `${list.map(his => `**${his.get("title") as string}** ${his.get("url") as string}`).join("\n")}`
           )
@@ -72,7 +72,7 @@ export default {
       await interaction.followUp({
         embeds: [
           new SuccessEmbed(
-            interaction.client,
+            interaction.client.user,
             "Deleted",
             `${title}`
           )

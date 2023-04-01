@@ -40,10 +40,10 @@ export default {
               })
             ),
         );
-      await interaction.reply({ embeds: [new InfoEmbed(interaction.client, `:mag:  **Search results for "${keyword}"**`, `${items.join("")}\n **Valid at ${time(new Date(new Date().getTime() + 60000), 'R')}**`)], components: [row] });
+      await interaction.reply({ embeds: [new InfoEmbed(interaction.client.user, `:mag:  **Search results for "${keyword}"**`, `${items.join("")}\n **Valid at ${time(new Date(new Date().getTime() + 60000), 'R')}**`)], components: [row] });
     } catch (e) {
       console.error(e)
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", (e as Error).message)] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", (e as Error).message)] });
     }
 
   },

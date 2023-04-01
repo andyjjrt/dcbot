@@ -63,7 +63,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
   let subscription = subscriptions.get(interaction.guildId || "");
   const commandChannel = interaction.channel;
   if (!(commandChannel instanceof TextChannel)) {
-    await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client, "Error", "Please use this command in a **Text Channel**")] });
+    await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Please use this command in a **Text Channel**")] });
     return;
   }
   if (!subscription) {
@@ -84,7 +84,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
 
   // If there is no subscription, tell the user they need to join a channel.
   if (!subscription) {
-    await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client, "Error", "Join a voice channel and then try that again!")] });
+    await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Join a voice channel and then try that again!")] });
     return;
   }
 
@@ -93,20 +93,20 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
     await entersState(subscription.voiceConnection, VoiceConnectionStatus.Ready, 20e3);
   } catch (error) {
     console.error(error);
-    await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client, "Error", "Failed to join voice channel within 20 seconds, please try again later!")] });
+    await interaction.followUp({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Failed to join voice channel within 20 seconds, please try again later!")] });
     return;
   }
 
   try {
     // Attempt to create a Track from the user's video URL
-    await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "")] }).catch(console.error);
+    await interaction.editReply({ embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "")] }).catch(console.error);
     const list = await Track.from(url, {
       onStart(url, title, thumbnail) {
-        subscription!.logChannel?.send({ embeds: [new PlayingEmbed(interaction.client, title, url).setThumbnail(thumbnail)] })
+        subscription!.logChannel?.send({ embeds: [new PlayingEmbed(interaction.client.user, title, url).setThumbnail(thumbnail)] })
       },
       onError(error) {
         console.error(error)
-        subscription!.logChannel?.send({ embeds: [new ErrorEmbed(interaction.client, "Error", error.message)] })
+        subscription!.logChannel?.send({ embeds: [new ErrorEmbed(interaction.client.user, "Error", error.message)] })
       },
     }, interaction);
     // Enqueue the track and reply a success message to the user
@@ -129,9 +129,9 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
       time: new Date(),
       list: list.tracks.length > 1
     });
-    await interaction.editReply({ embeds: [new SuccessEmbed(interaction.client, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(list.thumbnail)] });
+    await interaction.editReply({ embeds: [new SuccessEmbed(interaction.client.user, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(list.thumbnail)] });
   } catch (error) {
     console.error(error);
-    await interaction.editReply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Failed to play track, please try again later!\n\n" + error)] });
+    await interaction.editReply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Failed to play track, please try again later!\n\n" + error)] });
   }
 }

@@ -16,15 +16,15 @@ export default {
         if (subscription.voiceConnection.joinConfig.channelId === interaction.member.voice.channelId) {
           subscription.skipFlag = true;
           subscription.audioPlayer.stop();
-          await interaction.reply({ embeds: [new SuccessEmbed(interaction.client, "Sucess", "Skipped current song")] });
+          await interaction.reply({ embeds: [new SuccessEmbed(interaction.client.user, "Sucess", "Skipped current song")] });
         } else {
-          await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "You're not in the same voice channel with bot!")] });
+          await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're not in the same voice channel with bot!")] });
         }
       } else {
-        await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "You're not in a voice channel!")] });
+        await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're not in a voice channel!")] });
       }
     } else {
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Not playing in this server!")] });
     }
   },
 };

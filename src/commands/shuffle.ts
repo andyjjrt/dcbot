@@ -14,19 +14,19 @@ export default {
       if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
         if (subscription.voiceConnection.joinConfig.channelId === interaction.member.voice.channelId) {
           if (subscription.audioPlayer.state.status === AudioPlayerStatus.Idle || !subscription.currentPlaying) {
-            await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Nothing is currently playing!")] })
+            await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Nothing is currently playing!")] })
           } else {
             subscription.queue.sort((a, b) => Math.random() - 0.5);
-            await interaction.reply({ embeds: [new SuccessEmbed(interaction.client, "Sucess", "Shuffle Completed")] });
+            await interaction.reply({ embeds: [new SuccessEmbed(interaction.client.user, "Sucess", "Shuffle Completed")] });
           }
         } else {
-          await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "You're not in the same voice channel with bot!")] });
+          await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're not in the same voice channel with bot!")] });
         }
       } else {
-        await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "You're not in a voice channel!")] });
+        await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're not in a voice channel!")] });
       }
     } else {
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Not playing in this server!")] });
     }
   },
 };

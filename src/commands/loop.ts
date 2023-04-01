@@ -26,20 +26,20 @@ export default {
           subscription.loop = status as "off" | "one" | "queue";
           await interaction.reply({
             embeds: [
-              new SuccessEmbed(interaction.client, "Current Status", " ")
+              new SuccessEmbed(interaction.client.user, "Current Status", " ")
                 .addFields(
                   { name: 'Loop', value: subscription.loop, inline: true }
                 )
             ]
           });
         } else {
-          await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "You're not in the same voice channel with bot!")] });
+          await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're not in the same voice channel with bot!")] });
         }
       } else {
-        await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "You're not in a voice channel!")] });
+        await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're not in a voice channel!")] });
       }
     } else {
-      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client, "Error", "Not playing in this server!")] });
+      await interaction.reply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Not playing in this server!")] });
     }
   },
 };
