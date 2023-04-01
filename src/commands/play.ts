@@ -102,7 +102,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
     await interaction.editReply({ embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "")] }).catch(console.error);
     const list = await Track.from(url, {
       onStart(url, title, thumbnail) {
-        subscription!.logChannel?.send({ embeds: [new PlayingEmbed(interaction.client.user, title, url).setThumbnail(thumbnail)] })
+        subscription!.logChannel?.send({ embeds: [new PlayingEmbed(interaction.member!.user, title, url).setThumbnail(thumbnail)] })
       },
       onError(error) {
         console.error(error)
@@ -129,7 +129,7 @@ export const play = async (interaction: ChatInputCommandInteraction | MessageCom
       time: new Date(),
       list: list.tracks.length > 1
     });
-    await interaction.editReply({ embeds: [new SuccessEmbed(interaction.client.user, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(list.thumbnail)] });
+    await interaction.editReply({ embeds: [new SuccessEmbed(interaction.member!.user, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(list.thumbnail)] });
   } catch (error) {
     console.error(error);
     await interaction.editReply({ embeds: [new ErrorEmbed(interaction.client.user, "Error", "Failed to play track, please try again later!\n\n" + error)] });
