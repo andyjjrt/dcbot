@@ -12,6 +12,10 @@ import { initDB } from "./utils/db";
 import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import path from "path";
 
+console.log(
+  chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`)
+  + " Starting..."
+)
 
 // Create a new client instance
 export const client = new Client({

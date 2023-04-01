@@ -105,11 +105,10 @@ export class Track implements TrackData {
         });
       });
     }
-    const duration = await getVideoDurationInSeconds(this.filePath);
+    const duration = await getVideoDurationInSeconds(createReadStream(this.filePath));
     this.startTime = new Date().getTime();
     this.endTime = new Date().getTime() + (duration * 1000);
-    const stream = createReadStream(this.filePath);
-    return createAudioResource(stream, { metadata: this, inputType: StreamType.WebmOpus, });
+    return createAudioResource(createReadStream(this.filePath), { metadata: this, inputType: StreamType.WebmOpus, });
   };
 
   /**
@@ -121,90 +120,60 @@ export class Track implements TrackData {
    * @returns The created Track
    */
   public static async from(url: string, methods: Pick<Track, 'onStart' | 'onError'>, interaction: ChatInputCommandInteraction | MessageComponentInteraction): Promise<{ title: string, url: string, thumbnail: string, tracks: Track[] }> {
-    // single video => plylist => error
+    const defaultHandler = {
+      onStart(url: string, title: string, thumbnail: string) {
+        methods.onStart(url, title, thumbnail);
+      },
+      onError(error: Error) {
+        methods.onError(error);
+      },
+    }
 
     try {
-      try {
-        const valid = ytdlCore.validateURL(url);
-        if (!valid) throw new Error("not a song")
-        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching Song")] }).catch(console.error);
-        const res = await new Promise((resolve, reject) => {
-          exec(`yt-dlp --dump-single-json --no-abort-on-error ${url} > ${MUSIC_DIR}/info.json`, (error, stdout, stderr) => {
-            resolve(stdout);
-          });
-        }).then(async () => {
-          await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving song")] }).catch(console.error);
-          const file = await JSON.parse(fs.readFileSync(`${MUSIC_DIR}/info.json`).toString());
-          const filePath = `${MUSIC_DIR}/${file.id}.webm`
-
-          return {
-            title: file.title as string,
-            url: file.original_url as string,
-            thumbnail: file.thumbnails[0].url,
-            tracks: [new Track({
-              title: file.title,
-              url: file.original_url,
-              filePath,
-              thumbnail: file.thumbnails[0].url,
-              onStart(url: string, title: string, thumbnail: string) {
-                methods.onStart(url, title, thumbnail);
-              },
-              onError(error: Error) {
-                methods.onError(error);
-              },
-            })]
-          };
-        })
-
-        return res;
-      } catch (e) {
-        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching list")] }).catch(console.error);
-        const res = await new Promise((resolve, reject) => {
-          exec(`yt-dlp --dump-single-json --no-abort-on-error --flat-playlist ${url} > ${MUSIC_DIR}/info.json`, (error, stdout, stderr) => {
-            resolve(stdout);
-          });
-        }).then(async () => {
-          await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving songs")] }).catch(console.error);
-          const file = await JSON.parse(fs.readFileSync(`${MUSIC_DIR}/info.json`).toString());
-          const playlist = file.entries;
-          let tracks = new Array<Track>();
-          const total = playlist.length;
-          let count = 0;
-
-          playlist.map((track: any) => {
+      await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Fetching data")] }).catch(console.error);
+      const res = await new Promise((resolve, reject) => {
+        exec(`yt-dlp --dump-single-json --no-abort-on-error ${url} > ${MUSIC_DIR}/info.json`, (error, stdout, stderr) => {
+          resolve(stdout);
+        });
+      }).then(async () => {
+        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", "Resolving data")] }).catch(console.error);
+        const file = await JSON.parse(fs.readFileSync(`${MUSIC_DIR}/info.json`).toString());
+        const filePath = `${MUSIC_DIR}/${file.id}.webm`
+        let tracks: Track[] = [];
+        const total = file.entries?.length || 1;
+        let count = 0;
+        if (file.entries instanceof Array) {
+          file.entries.map((track: any) => {
             const filePath = `${MUSIC_DIR}/${track.id}.webm`
-            tracks.push(new Track({
-              title: track.title,
-              url: track.url,
-              filePath,
-              thumbnail: track.thumbnails[0].url,
-              onStart(url: string, title: string, thumbnail: string) {
-                methods.onStart(url, title, thumbnail);
-              },
-              onError(error: Error) {
-                methods.onError(error);
-              },
-            }));
+            tracks.push(new Track({ title: track.title, url: track.original_url, filePath, thumbnail: track.thumbnails[0].url, ...defaultHandler }));
             count++;
           })
 
+        } else {
+          tracks.push(new Track({ title: file.title, url: file.original_url, filePath, thumbnail: file.thumbnails[0].url, ...defaultHandler }));
+          count++;
+        }
+
+        if (count < total) {
           for await (const startTime of setInterval(2000, Date.now())) {
             await interaction.editReply({ embeds: [new InfoEmbed(interaction.client, ":inbox_tray: Processing", `Resolving songs ${count} / ${total}`)] }).catch(console.error);
             if (count >= total)
               break;
           }
+        }
 
-          return {
-            title: file.title as string,
-            url: file.original_url as string,
-            thumbnail: file.thumbnails[0].url,
-            tracks: tracks
-          };
-        })
-        return res;
-      }
+        return {
+          title: file.title as string,
+          url: file.original_url as string,
+          thumbnail: file.thumbnails[0].url,
+          tracks: tracks
+        };
+      })
+
+      return res;
     }
     catch (e) {
+      console.error(e)
       return {
         title: url,
         url: url,
