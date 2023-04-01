@@ -1,7 +1,7 @@
 import { ErrorEmbed, InfoEmbed, SuccessEmbed } from './../utils/Embed';
 import { SlashCommandBuilder, PermissionsBitField, ChatInputCommandInteraction } from "discord.js";
 import { client } from "../index";
-import { Setting } from '../utils/db/schema';
+import { Record, Setting } from '../utils/db/schema';
 import { exec } from 'child_process';
 const { MUSIC_DIR } = process.env;
 
@@ -29,6 +29,12 @@ export default {
         command
           .setName("buffer")
           .setDescription("Get current buffer")
+    )
+    .addSubcommand(
+      command =>
+        command
+          .setName("records")
+          .setDescription("Get recent records")
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand(true);
@@ -57,6 +63,19 @@ export default {
       });
       await interaction.followUp({
         embeds: [new InfoEmbed(interaction.client.user, ":man_shrugging:  Bump!", `Local music buffer folder size is ${(res as string).split("\t")[0]}`)],
+        ephemeral: true
+      });
+    } else if (subcommand === "records") {
+      const data = await Record.findAll({
+        where: {
+          guildId: interaction.guildId
+        },
+        limit: 10,
+        order: [['time', 'DESC']]
+      });
+      const records = data.map((record, i) =>`**${i + 1}**.  [${record.get("title") as string}](${record.get("url") as string})`)
+      await interaction.followUp({
+        embeds: [new InfoEmbed(interaction.client.user, ":page_facing_up:  Recent Records", `${records.join("\n")}`)],
         ephemeral: true
       });
     }

@@ -45,6 +45,7 @@ import type { Track } from './Track';
 import { promisify } from 'node:util';
 import { subscriptions, client } from "..";
 import { ActivityType, Client, MessageCollector, TextChannel, ThreadChannel } from 'discord.js';
+import { Record } from './db/schema';
 
 const wait = promisify(setTimeout);
 
@@ -125,8 +126,6 @@ export class MusicSubscription {
       })
     }).then(async channel => {
       this.logChannel = channel;
-      const members = await channel.members.fetch();
-      return Promise.all(members.map(member => channel.members.remove(member.id)));
     }).catch(error => {
       console.error(error);
     });
@@ -196,6 +195,13 @@ export class MusicSubscription {
       const resource = await this.currentPlaying.createAudioResource();
       this.audioPlayer.play(resource);
       this.queueLock = false;
+      await Record.create({
+        time: new Date().getTime(),
+        guildId: this.voiceConnection.joinConfig.guildId,
+        userId: this.currentPlaying.user.id,
+        title: this.currentPlaying.title,
+        url: this.currentPlaying.url,
+      });
     } catch (error) {
       // If an error occurred, try the next item of the queue instead
       if (!this.currentPlaying) return this.processQueue();

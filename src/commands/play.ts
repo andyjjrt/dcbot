@@ -34,7 +34,7 @@ export default {
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const userId = interaction.member!.user.id;
-    const history = await History.findAll({ where: { userId: userId } });
+    const history = await History.findAll({ where: { userId: userId }, limit: 10, order: [['time', 'DESC']] });
     const focusedValue = interaction.options.getFocused();
     const choices = history.map(his => ({
       title: his.get("title") as string,
@@ -42,7 +42,7 @@ export default {
       time: new Date(his.get("time") as string).getTime(),
       list: his.get("list") as boolean
     }))
-    const filtered = choices.sort((a, b) => a.time - b.time).filter(choice => choice.title.startsWith(focusedValue));
+    const filtered = choices.filter(choice => choice.title.startsWith(focusedValue));
     await interaction.respond(
       filtered.map(choice => ({ name: `${choice.list ? "🎶" : "🎵"} ${choice.title}`, value: choice.url })),
     );
