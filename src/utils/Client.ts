@@ -11,7 +11,7 @@ export default class MyClient extends Client<true> {
     this.collection = new Collection();
     this._clientId = clientId;
     this._token = token;
-    const commandFiles = readdirSync(commandsPath).filter(file => file.endsWith('.ts') && !file.includes("disable"));
+    const commandFiles = readdirSync(commandsPath).filter(file => (file.endsWith('.ts') || file.endsWith('.js')) && !file.includes("disable"));
     for (const file of commandFiles) {
       const command = require(path.join(commandsPath, file));
       this.collection.set(command.default.data.name, command.default);
