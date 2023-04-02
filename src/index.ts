@@ -19,7 +19,8 @@ console.log(
 
 // Create a new client instance
 export const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessageReactions],
+  allowedMentions: { parse: ['roles'], repliedUser: false }
 }, CLIENT_ID, TOKEN, path.join(__dirname, "commands"));
 
 export const subscriptions = new Map<Snowflake, MusicSubscription>();
