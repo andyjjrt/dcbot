@@ -5,6 +5,18 @@ import { Record, Setting } from '../utils/db/schema';
 import { exec } from 'child_process';
 const { MUSIC_DIR } = process.env;
 
+function formatBytes(bytes: number, decimals = 2) {
+  if (!+bytes) return '0 Bytes'
+
+  const k = 1024
+  const dm = decimals < 0 ? 0 : decimals
+  const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+}
+
 export default {
   data: new SlashCommandBuilder()
     .setName("setting")
@@ -61,8 +73,27 @@ export default {
           resolve(stdout);
         });
       });
+      const startUsage = process.cpuUsage();
+      const now = Date.now();
+      while (Date.now() - now < 500);
+      console.log(process.cpuUsage(startUsage))
       await interaction.followUp({
-        embeds: [new InfoEmbed(interaction.client.user, ":man_shrugging:  Bump!", `Local music buffer folder size is ${(res as string).split("\t")[0]}`)],
+        embeds: [
+          new InfoEmbed(interaction.client.user, ":man_shrugging:  Bump!", "")
+            .addFields({
+              name: "Buffer",
+              value: `Local music buffer folder size is ${(res as string).split("\t")[0]}`
+            })
+            .addFields({
+              name: "Memory",
+              value:
+                `Heap: ${formatBytes(process.memoryUsage().heapUsed)}/${formatBytes(process.memoryUsage().heapTotal)}
+                External: ${formatBytes(process.memoryUsage().external)}
+                Resident Set Size: ${formatBytes(process.memoryUsage().rss)}
+                Array Buffers: ${formatBytes(process.memoryUsage().arrayBuffers)}
+                `
+            })
+        ],
         ephemeral: true
       });
     } else if (subcommand === "records") {
@@ -73,7 +104,7 @@ export default {
         limit: 10,
         order: [['time', 'DESC']]
       });
-      const records = data.map((record, i) =>`**${i + 1}**.  [${record.get("title") as string}](${record.get("url") as string})`)
+      const records = data.map((record, i) => `**${i + 1}**.  [${record.get("title") as string}](${record.get("url") as string})`)
       await interaction.followUp({
         embeds: [new InfoEmbed(interaction.client.user, ":page_facing_up:  Recent Records", `${records.join("\n")}`)],
         ephemeral: true
