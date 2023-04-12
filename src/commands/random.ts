@@ -4,8 +4,8 @@ import { client, subscriptions } from "../index";
 
 export default {
   data: new SlashCommandBuilder()
-    .setName("ping")
-    .setDescription("Simple ping pong game"),
+    .setName("random")
+    .setDescription("generate random number"),
   async execute(interaction: CommandInteraction) {
     let subscription = subscriptions.get(interaction.guildId!);
     await interaction.reply({

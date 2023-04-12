@@ -28,15 +28,20 @@ limitations under the License.
 
 */
 
-import ytdlCore from 'ytdl-core';
-import { exec } from 'child_process';
+import ytdlCore from "ytdl-core";
+import { exec } from "child_process";
 import fs, { createReadStream } from "fs";
-import { createAudioResource, StreamType } from "@discordjs/voice"
-import { APIUser, ChatInputCommandInteraction, MessageComponentInteraction, User } from 'discord.js';
-import { InfoEmbed } from './Embed';
-import { setInterval } from 'timers/promises';
-import { client } from '..';
-import { getVideoDurationInSeconds } from "get-video-duration"
+import { createAudioResource, StreamType } from "@discordjs/voice";
+import {
+  APIUser,
+  ChatInputCommandInteraction,
+  MessageComponentInteraction,
+  User,
+} from "discord.js";
+import { InfoEmbed } from "./Embed";
+import { setInterval } from "timers/promises";
+import { client } from "..";
+import { getVideoDurationInSeconds } from "get-video-duration";
 const { MUSIC_DIR } = process.env;
 
 /**
@@ -54,7 +59,7 @@ export interface TrackData {
   onError: (error: Error) => void;
 }
 
-const noop = () => { };
+const noop = () => {};
 
 /**
  * A Track represents information about a YouTube video (in this context) that can be added to a queue.
@@ -73,20 +78,30 @@ export class Track implements TrackData {
   public readonly user: User | APIUser;
   public startTime: number;
   public endTime: number;
-  public readonly onStart: (url: string, title: string, thumbnail: string) => void;
+  public readonly onStart: (
+    url: string,
+    title: string,
+    thumbnail: string
+  ) => void;
   public readonly onError: (error: Error) => void;
 
-  private constructor(
-    { url, title, thumbnail, filePath, onStart, onError, user }:
-      {
-        url: string;
-        title: string;
-        thumbnail: string;
-        filePath: string;
-        user: User | APIUser;
-        onStart: (url: string, title: string, thumbnail: string) => void;
-        onError: (error: Error) => void;
-      }) {
+  private constructor({
+    url,
+    title,
+    thumbnail,
+    filePath,
+    onStart,
+    onError,
+    user,
+  }: {
+    url: string;
+    title: string;
+    thumbnail: string;
+    filePath: string;
+    user: User | APIUser;
+    onStart: (url: string, title: string, thumbnail: string) => void;
+    onError: (error: Error) => void;
+  }) {
     this.url = url;
     this.title = title;
     this.thumbnail = thumbnail;
@@ -101,19 +116,27 @@ export class Track implements TrackData {
   public async createAudioResource() {
     if (!fs.existsSync(this.filePath)) {
       await new Promise((resolve, reject) => {
-        exec(`yt-dlp -o "${MUSIC_DIR}/%(id)s.%(ext)s" --format "bestaudio" --quiet --file-access-retries 1 ${this.url}`, (error, stdout, stderr) => {
-          if (error) {
-            console.error(error);
+        exec(
+          `yt-dlp -o "${MUSIC_DIR}/%(id)s.%(ext)s" --format "bestaudio" --quiet --file-access-retries 1 ${this.url}`,
+          (error, stdout, stderr) => {
+            if (error) {
+              console.error(error);
+            }
+            resolve(stdout);
           }
-          resolve(stdout);
-        });
+        );
       });
     }
-    const duration = await getVideoDurationInSeconds(createReadStream(this.filePath));
+    const duration = await getVideoDurationInSeconds(
+      createReadStream(this.filePath)
+    );
     this.startTime = new Date().getTime();
-    this.endTime = new Date().getTime() + (duration * 1000);
-    return createAudioResource(createReadStream(this.filePath), { metadata: this, inputType: StreamType.WebmOpus, });
-  };
+    this.endTime = new Date().getTime() + duration * 1000;
+    return createAudioResource(createReadStream(this.filePath), {
+      metadata: this,
+      inputType: StreamType.WebmOpus,
+    });
+  }
 
   /**
    * Creates a Track from a video URL and lifecycle callback methods.
@@ -123,7 +146,17 @@ export class Track implements TrackData {
    *
    * @returns The created Track
    */
-  public static async from(url: string, methods: Pick<Track, 'onStart' | 'onError'>, interaction: ChatInputCommandInteraction | MessageComponentInteraction): Promise<{ title: string, url: string, thumbnail: string, user: User | APIUser, tracks: Track[] }> {
+  public static async from(
+    url: string,
+    methods: Pick<Track, "onStart" | "onError">,
+    interaction: ChatInputCommandInteraction | MessageComponentInteraction
+  ): Promise<{
+    title: string;
+    url: string;
+    thumbnail: string;
+    user: User | APIUser;
+    tracks: Track[];
+  }> {
     const defaultHandler = {
       onStart(url: string, title: string, thumbnail: string) {
         methods.onStart(url, title, thumbnail);
@@ -131,38 +164,89 @@ export class Track implements TrackData {
       onError(error: Error) {
         methods.onError(error);
       },
-    }
+    };
 
     try {
-      await interaction.editReply({ embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "Fetching data")] }).catch(console.error);
+      await interaction
+        .editReply({
+          embeds: [
+            new InfoEmbed(
+              interaction.client.user,
+              ":inbox_tray: Processing",
+              "Fetching data"
+            ),
+          ],
+        })
+        .catch(console.error);
       const res = await new Promise((resolve, reject) => {
-        exec(`yt-dlp --dump-single-json --no-abort-on-error ${url} > ${MUSIC_DIR}/info.json`, (error, stdout, stderr) => {
-          resolve(stdout);
-        });
+        exec(
+          `yt-dlp --dump-single-json --no-abort-on-error ${url} > ${MUSIC_DIR}/info.json`,
+          (error, stdout, stderr) => {
+            resolve(stdout);
+          }
+        );
       }).then(async () => {
-        await interaction.editReply({ embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "Resolving data")] }).catch(console.error);
-        const file = await JSON.parse(fs.readFileSync(`${MUSIC_DIR}/info.json`).toString());
-        const filePath = `${MUSIC_DIR}/${file.id}.webm`
+        await interaction
+          .editReply({
+            embeds: [
+              new InfoEmbed(
+                interaction.client.user,
+                ":inbox_tray: Processing",
+                "Resolving data"
+              ),
+            ],
+          })
+          .catch(console.error);
+        const file = await JSON.parse(
+          fs.readFileSync(`${MUSIC_DIR}/info.json`).toString()
+        );
+        const filePath = `${MUSIC_DIR}/${file.id}.webm`;
         let tracks: Track[] = [];
         const total = file.entries?.length || 1;
         let count = 0;
         if (file.entries instanceof Array) {
           file.entries.map((track: any) => {
-            const filePath = `${MUSIC_DIR}/${track.id}.webm`
-            tracks.push(new Track({ title: track.title, url: track.original_url, filePath, thumbnail: track.thumbnails[0].url, user: interaction.member!.user,  ...defaultHandler }));
+            const filePath = `${MUSIC_DIR}/${track.id}.webm`;
+            tracks.push(
+              new Track({
+                title: track.title,
+                url: track.original_url,
+                filePath,
+                thumbnail: track.thumbnails[0].url,
+                user: interaction.member!.user,
+                ...defaultHandler,
+              })
+            );
             count++;
-          })
-
+          });
         } else {
-          tracks.push(new Track({ title: file.title, url: file.original_url, filePath, thumbnail: file.thumbnails[0].url, user: interaction.member!.user, ...defaultHandler }));
+          tracks.push(
+            new Track({
+              title: file.title,
+              url: file.original_url,
+              filePath,
+              thumbnail: file.thumbnails[0].url,
+              user: interaction.member!.user,
+              ...defaultHandler,
+            })
+          );
           count++;
         }
 
         if (count < total) {
           for await (const startTime of setInterval(2000, Date.now())) {
-            await interaction.editReply({ embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", `Resolving songs ${count} / ${total}`)] }).catch(console.error);
-            if (count >= total)
-              break;
+            await interaction
+              .editReply({
+                embeds: [
+                  new InfoEmbed(
+                    interaction.client.user,
+                    ":inbox_tray: Processing",
+                    `Resolving songs ${count} / ${total}`
+                  ),
+                ],
+              })
+              .catch(console.error);
+            if (count >= total) break;
           }
         }
 
@@ -171,21 +255,21 @@ export class Track implements TrackData {
           url: file.original_url as string,
           thumbnail: file.thumbnails[0].url,
           user: interaction.member!.user,
-          tracks: tracks
+          tracks: tracks,
         };
-      })
+      });
 
       return res;
-    }
-    catch (e) {
-      console.error(e)
+    } catch (e) {
+      console.error(e);
       return {
         title: url,
         url: url,
-        thumbnail: "https://memeprod.ap-south-1.linodeobjects.com/user-template/63e160366afc7f7a7a1e5de55fd0e38f.png",
+        thumbnail:
+          "https://memeprod.ap-south-1.linodeobjects.com/user-template/63e160366afc7f7a7a1e5de55fd0e38f.png",
         user: interaction.member!.user,
-        tracks: []
-      }
+        tracks: [],
+      };
     }
   }
 }

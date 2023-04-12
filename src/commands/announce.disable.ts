@@ -1,34 +1,46 @@
-import { InfoEmbed, SuccessEmbed } from '../utils/Embed';
-import { SlashCommandBuilder, CommandInteraction, ChatInputCommandInteraction, Embed } from "discord.js";
+import { InfoEmbed, SuccessEmbed } from "../utils/Embed";
+import {
+  SlashCommandBuilder,
+  CommandInteraction,
+  ChatInputCommandInteraction,
+  Embed,
+} from "discord.js";
 import { client } from "../index";
-import { Announce } from '../utils/db/schema';
+import { Announce } from "../utils/db/schema";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("announce")
     .setDescription("Announce")
-    .addSubcommand(subcommand =>
+    .addSubcommand((subcommand) =>
       subcommand
-        .setName('add')
-        .setDescription('Add Announce')
-        .addStringOption(
-          option => option.setName("title").setDescription("Announce title").setRequired(true)
+        .setName("add")
+        .setDescription("Add Announce")
+        .addStringOption((option) =>
+          option
+            .setName("title")
+            .setDescription("Announce title")
+            .setRequired(true)
         )
-        .addStringOption(
-          option => option.setName("url").setDescription("Announce title").setRequired(true)
+        .addStringOption((option) =>
+          option
+            .setName("url")
+            .setDescription("Announce title")
+            .setRequired(true)
         )
     )
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName('list')
-        .setDescription('List announce')
+    .addSubcommand((subcommand) =>
+      subcommand.setName("list").setDescription("List announce")
     )
-    .addSubcommand(subcommand =>
+    .addSubcommand((subcommand) =>
       subcommand
-        .setName('remove')
-        .setDescription('List announce')
-        .addStringOption(
-          option => option.setName("title").setDescription("Announce title").setRequired(true)
+        .setName("remove")
+        .setDescription("List announce")
+        .addStringOption((option) =>
+          option
+            .setName("title")
+            .setDescription("Announce title")
+            .setRequired(true)
         )
     ),
   async execute(interaction: ChatInputCommandInteraction) {
@@ -41,7 +53,7 @@ export default {
       await Announce.upsert({
         guildId: guildId,
         title: title,
-        url: url
+        url: url,
       });
       await interaction.followUp({
         embeds: [
@@ -49,8 +61,8 @@ export default {
             interaction.client.user,
             "Success",
             `**${title}** ${url}`
-          )
-        ]
+          ),
+        ],
       });
     } else if (subcommand === "list") {
       const list = await Announce.findAll({ where: { guildId: guildId } });
@@ -59,26 +71,30 @@ export default {
           new InfoEmbed(
             interaction.client.user,
             ":information_source:  **Announce List**",
-            `${list.map(his => `**${his.get("title") as string}** ${his.get("url") as string}`).join("\n")}`
-          )
-        ]
-      })
+            `${list
+              .map(
+                (his) =>
+                  `**${his.get("title") as string}** ${
+                    his.get("url") as string
+                  }`
+              )
+              .join("\n")}`
+          ),
+        ],
+      });
     } else if (subcommand === "remove") {
       const title = interaction.options.get("title", true).value as string;
-      await Announce.destroy({where: {
-        guildId: guildId,
-        title: title
-      }});
+      await Announce.destroy({
+        where: {
+          guildId: guildId,
+          title: title,
+        },
+      });
       await interaction.followUp({
         embeds: [
-          new SuccessEmbed(
-            interaction.client.user,
-            "Deleted",
-            `${title}`
-          )
-        ]
+          new SuccessEmbed(interaction.client.user, "Deleted", `${title}`),
+        ],
       });
     }
-
   },
 };

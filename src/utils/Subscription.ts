@@ -28,7 +28,7 @@ limitations under the License.
 
 */
 
-import { InfoEmbed } from './Embed';
+import { InfoEmbed } from "./Embed";
 import {
   AudioPlayer,
   AudioPlayerStatus,
@@ -39,13 +39,20 @@ import {
   VoiceConnectionDisconnectReason,
   VoiceConnectionStatus,
   VoiceConnectionState,
-  AudioPlayerState
-} from '@discordjs/voice';
-import type { Track } from './Track';
-import { promisify } from 'node:util';
+  AudioPlayerState,
+} from "@discordjs/voice";
+import type { Track } from "./Track";
+import { promisify } from "node:util";
 import { subscriptions, client } from "..";
-import { ActivityType, Client, MessageCollector, TextChannel, ThreadChannel } from 'discord.js';
-import { Record } from './db/schema';
+import {
+  ActivityType,
+  Client,
+  MessageCollector,
+  TextChannel,
+  ThreadChannel,
+} from "discord.js";
+import { Record } from "./db/schema";
+import QueueMessage from "./QueueMessage";
 
 const wait = promisify(setTimeout);
 
@@ -57,6 +64,7 @@ export class MusicSubscription {
   public readonly voiceConnection: VoiceConnection;
   public readonly audioPlayer: AudioPlayer;
   public readonly commandChannel: TextChannel;
+  public queueMessage: QueueMessage;
   public logChannel: ThreadChannel | null = null;
   public leaveTimer: NodeJS.Timeout | null;
   public queue: Track[];
@@ -66,69 +74,111 @@ export class MusicSubscription {
   public readyLock = false;
   public skipFlag = false;
 
-  public constructor(voiceConnection: VoiceConnection, commandChannel: TextChannel) {
+  public constructor(
+    voiceConnection: VoiceConnection,
+    commandChannel: TextChannel
+  ) {
     this.voiceConnection = voiceConnection;
     this.audioPlayer = createAudioPlayer();
     this.commandChannel = commandChannel;
     this.leaveTimer = null;
     this.queue = [];
+    this.queueMessage = new QueueMessage(this);
 
-    this.voiceConnection.on("stateChange", async (_: VoiceConnectionState, newState: VoiceConnectionState) => {
-      const guildId = voiceConnection.joinConfig.guildId;
-      if (newState.status === VoiceConnectionStatus.Disconnected) {
-        if (newState.reason === VoiceConnectionDisconnectReason.WebSocketClose && newState.closeCode === 4014) {
-          subscriptions.delete(guildId);
-          this.voiceConnection.destroy();
-        } else {
-          subscriptions.delete(guildId);
-          this.voiceConnection.destroy();
-        }
-      } else if (newState.status === VoiceConnectionStatus.Destroyed) {
-        this.stop();
-      } else if (
-        !this.readyLock &&
-        (newState.status === VoiceConnectionStatus.Connecting || newState.status === VoiceConnectionStatus.Signalling)
-      ) {
-        this.readyLock = true;
-        try {
-          await entersState(this.voiceConnection, VoiceConnectionStatus.Ready, 20_000);
-        } catch {
-          if (this.voiceConnection.state.status !== VoiceConnectionStatus.Destroyed) {
-            this.voiceConnection.destroy();
+    this.voiceConnection.on(
+      "stateChange",
+      async (_: VoiceConnectionState, newState: VoiceConnectionState) => {
+        const guildId = voiceConnection.joinConfig.guildId;
+        if (newState.status === VoiceConnectionStatus.Disconnected) {
+          if (
+            newState.reason ===
+              VoiceConnectionDisconnectReason.WebSocketClose &&
+            newState.closeCode === 4014
+          ) {
             subscriptions.delete(guildId);
+            this.voiceConnection.destroy();
+          } else {
+            subscriptions.delete(guildId);
+            this.voiceConnection.destroy();
           }
-        } finally {
-          this.readyLock = false;
+        } else if (newState.status === VoiceConnectionStatus.Destroyed) {
+          this.stop();
+        } else if (
+          !this.readyLock &&
+          (newState.status === VoiceConnectionStatus.Connecting ||
+            newState.status === VoiceConnectionStatus.Signalling)
+        ) {
+          this.readyLock = true;
+          try {
+            await entersState(
+              this.voiceConnection,
+              VoiceConnectionStatus.Ready,
+              20_000
+            );
+          } catch {
+            if (
+              this.voiceConnection.state.status !==
+              VoiceConnectionStatus.Destroyed
+            ) {
+              this.voiceConnection.destroy();
+              subscriptions.delete(guildId);
+            }
+          } finally {
+            this.readyLock = false;
+          }
         }
       }
-    });
+    );
 
     // Configure audio player
-    this.audioPlayer.on("stateChange", (oldState: AudioPlayerState, newState: AudioPlayerState) => {
-      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-        // If the Idle state is entered from a non-Idle state, it means that an audio resource has finished playing.
-        // The queue is then processed to start playing the next track, if one is available.
-        void this.processQueue();
-      } else if (newState.status === AudioPlayerStatus.Playing) {
-        // If the Playing state has been entered, then a new track has started playback.
-        (newState.resource as AudioResource<Track>).metadata.onStart((newState.resource as AudioResource<Track>).metadata.url, (newState.resource as AudioResource<Track>).metadata.title, (newState.resource as AudioResource<Track>).metadata.thumbnail);
+    this.audioPlayer.on(
+      "stateChange",
+      (oldState: AudioPlayerState, newState: AudioPlayerState) => {
+        if (
+          newState.status === AudioPlayerStatus.Idle &&
+          oldState.status !== AudioPlayerStatus.Idle
+        ) {
+          // If the Idle state is entered from a non-Idle state, it means that an audio resource has finished playing.
+          // The queue is then processed to start playing the next track, if one is available.
+          void this.processQueue();
+        } else if (newState.status === AudioPlayerStatus.Playing) {
+          // If the Playing state has been entered, then a new track has started playback.
+          (newState.resource as AudioResource<Track>).metadata.onStart(
+            (newState.resource as AudioResource<Track>).metadata.url,
+            (newState.resource as AudioResource<Track>).metadata.title,
+            (newState.resource as AudioResource<Track>).metadata.thumbnail
+          );
+        }
       }
-    });
+    );
 
-    this.audioPlayer.on('error', (error: { resource: any; }) => (error.resource as AudioResource<Track>).metadata.onError(new Error(error.resource)));
+    this.audioPlayer.on("error", (error: { resource: any }) =>
+      (error.resource as AudioResource<Track>).metadata.onError(
+        new Error(error.resource)
+      )
+    );
 
     voiceConnection.subscribe(this.audioPlayer);
 
-    this.commandChannel.threads.fetch().then(threads => {
-      const channel = threads.threads.find(t => t.ownerId === client.user.id);
-      return channel || this.commandChannel.threads.create({
-        name: `🎶 Logs`,
+    this.commandChannel.threads
+      .fetch()
+      .then((threads) => {
+        const channel = threads.threads.find(
+          (t) => t.ownerId === client.user.id
+        );
+        return (
+          channel ||
+          this.commandChannel.threads.create({
+            name: `🎶 Logs`,
+          })
+        );
       })
-    }).then(async channel => {
-      this.logChannel = channel;
-    }).catch(error => {
-      console.error(error);
-    });
+      .then(async (channel) => {
+        this.logChannel = channel;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   /**
@@ -142,10 +192,10 @@ export class MusicSubscription {
   }
 
   /**
- * Adds a new Track to the queue front.
- *
- * @param track The track to add to the queue
- */
+   * Adds a new Track to the queue front.
+   *
+   * @param track The track to add to the queue
+   */
   public prependQueue(track: Track[]) {
     this.queue.unshift(...track);
     this.processQueue();
@@ -167,13 +217,19 @@ export class MusicSubscription {
     // If the queue is locked (already being processed), is empty, or the audio player is already playing something, return
 
     if (!this.currentPlaying && this.queue.length === 0) {
-      this.commandChannel.send({ embeds: [new InfoEmbed(client.user, ":wave:  Leaving", "bye")] })
+      this.commandChannel.send({
+        embeds: [new InfoEmbed(client.user, ":wave:  Leaving", "bye")],
+      });
       subscriptions.delete(this.voiceConnection.joinConfig.guildId);
       this.voiceConnection.destroy();
       return;
     }
 
-    if (this.queueLock || this.audioPlayer.state.status !== AudioPlayerStatus.Idle || (this.queue.length === 0 && this.loop === "off" && !this.currentPlaying)) {
+    if (
+      this.queueLock ||
+      this.audioPlayer.state.status !== AudioPlayerStatus.Idle ||
+      (this.queue.length === 0 && this.loop === "off" && !this.currentPlaying)
+    ) {
       return;
     }
     // Lock the queue to guarantee safe access
@@ -182,11 +238,14 @@ export class MusicSubscription {
     // Take the first item from the queue. This is guaranteed to exist due to the non-empty check above.
     if (this.currentPlaying) {
       if (this.loop === "queue") {
-        this.queue.push(this.currentPlaying)
+        this.queue.push(this.currentPlaying);
       }
     }
 
-    if (!(this.loop === "one" && !this.skipFlag) || this.currentPlaying == null) {
+    if (
+      !(this.loop === "one" && !this.skipFlag) ||
+      this.currentPlaying == null
+    ) {
       this.currentPlaying = this.queue.shift()!;
     }
     this.skipFlag = false;
