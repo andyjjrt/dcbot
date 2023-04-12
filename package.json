@@ -7,7 +7,11 @@
   "scripts": {
     "build": "tsc",
     "dev": "nodemon --watch './**/*.ts' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "format": "prettier --write .",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "keywords": [],
   "author": "",
@@ -17,11 +21,12 @@
     "@discordjs/voice": "^0.15.0",
     "chalk": "4",
     "crypto-js": "^4.1.1",
-    "discord.js": "^14.8.0",
+    "discord.js": "^14.9.0",
     "dotenv": "^16.0.3",
     "get-video-duration": "^4.1.0",
     "libsodium-wrappers": "^0.7.11",
     "node-fetch": "2",
+    "seedrandom": "^3.0.5",
     "sequelize": "^6.30.0",
     "sqlite3": "^5.1.6",
     "yt-dlp-wrap": "^2.3.11",
@@ -31,7 +36,9 @@
     "@types/crypto-js": "^4.1.1",
     "@types/node": "^18.15.10",
     "nodemon": "^2.0.22",
+    "prettier": "^2.8.7",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.2",
+    "vitepress": "1.0.0-alpha.64"
   }
 }
