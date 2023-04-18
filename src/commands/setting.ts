@@ -47,7 +47,7 @@ export default {
       command.setName("refresh").setDescription("Refresh commands")
     )
     .addSubcommand((command) =>
-      command.setName("buffer").setDescription("Get current buffer")
+      command.setName("info").setDescription("Get info")
     )
     .addSubcommand((command) =>
       command.setName("records").setDescription("Get recent records")
@@ -100,7 +100,7 @@ export default {
         ],
         ephemeral: true,
       });
-    } else if (subcommand === "buffer") {
+    } else if (subcommand === "info") {
       const res = await new Promise((resolve, reject) => {
         exec(`du --max-depth=0 -h ${MUSIC_DIR}`, (error, stdout, stderr) => {
           resolve(stdout);
@@ -130,6 +130,10 @@ export default {
                   process.memoryUsage().arrayBuffers
                 )}
                 `,
+            })
+            .addFields({
+              name: "Version",
+              value: require("discord.js/package.json").version,
             }),
         ],
         ephemeral: true,

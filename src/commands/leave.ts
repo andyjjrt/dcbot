@@ -22,6 +22,7 @@ export default {
           subscription.voiceConnection.joinConfig.channelId ===
           interaction.member.voice.channelId
         ) {
+          subscription.queueMessage.destroy();
           subscription.voiceConnection.destroy();
           subscriptions.delete(interaction.guildId);
           await interaction.reply({

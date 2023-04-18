@@ -5,13 +5,12 @@ import {
   GatewayIntentBits,
   Snowflake,
   TextChannel,
-  time,
 } from "discord.js";
 import { MusicSubscription } from "./utils/Subscription";
 import chalk from "chalk";
 import * as dotenv from "dotenv";
 dotenv.config();
-const { TOKEN, CLIENT_ID } = process.env;
+const { TOKEN, CLIENT_ID, BANNED_LIST } = process.env;
 
 import Client from "./utils/Client";
 import { play } from "./commands/play";
@@ -71,6 +70,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
             "Error",
             "Please use command in a **Text Channel**"
           ),
+        ],
+      });
+      return;
+    }
+    if ((BANNED_LIST?.split(",") || []).indexOf(interaction.user.id) >= 0) {
+      await interaction.reply({
+        embeds: [
+          new ErrorEmbed(interaction.client.user, "Error", "You're banned"),
         ],
       });
       return;
@@ -168,7 +175,7 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
     const subscription = subscriptions.get(guildId);
     if (subscription && newState.member!.user.id !== client.user.id) {
       if (subscription.leaveTimer) {
-        subscription.leaveTimer = null;
+        clearTimeout(subscription.leaveTimer);
         subscription.commandChannel.send({
           embeds: [
             new InfoEmbed(
@@ -217,10 +224,11 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
                 new InfoEmbed(client.user, ":wave:  Left", "I'm right."),
               ],
             });
+            subscription.queueMessage.destroy();
             subscription.voiceConnection.destroy();
             subscriptions.delete(guildId);
           }
-        }, 60000);
+        }, 10000);
       }
     }
   }
