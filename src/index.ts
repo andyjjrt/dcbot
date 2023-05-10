@@ -9,8 +9,10 @@ import {
 import { MusicSubscription } from "./utils/Subscription";
 import chalk from "chalk";
 import * as dotenv from "dotenv";
+import http from "node:http";
+import fs from "node:fs";
 dotenv.config();
-const { TOKEN, CLIENT_ID, BANNED_LIST } = process.env;
+const { TOKEN, CLIENT_ID, BANNED_LIST, MUSIC_DIR, PORT } = process.env;
 
 import Client from "./utils/Client";
 import { play } from "./commands/play";
@@ -235,3 +237,36 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
 });
 
 client.login(TOKEN);
+
+const server = http.createServer((req, res) => {
+  const param = (req.url || "").split("/");
+  if (param[1] === "song") {
+    const filePath = path.join(MUSIC_DIR || "", `${param[2]}.webm`);
+    const isFileExist = fs.existsSync(filePath);
+    if (!isFileExist) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: true, data: "Not found" }));
+    } else {
+      const stat = fs.statSync(filePath);
+      res.writeHead(200, {
+        "Content-Type": "audio/mpeg",
+        "Content-Length": stat.size,
+      });
+      const readStream = fs.createReadStream(filePath);
+      readStream.pipe(res);
+    }
+  } else {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: false, data: "Hello world" }));
+  }
+});
+
+server.on("clientError", (err, socket) => {
+  socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
+});
+
+server.listen(PORT || 3000);
+console.log(
+  chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) +
+    " Server Starting..."
+);

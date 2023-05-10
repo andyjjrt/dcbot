@@ -17,6 +17,10 @@ A simple dc song bot
 TOKEN=******
 CLIENT_ID=******
 MUSIC_DIR=******
+DB_DIR=******
+
+PORT=3000
+BANNED_LIST=123,456
 ```
 
 ## Installation
