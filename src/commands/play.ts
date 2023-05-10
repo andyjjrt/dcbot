@@ -23,11 +23,11 @@ import { History } from "../utils/db/schema";
 export default {
   data: new SlashCommandBuilder()
     .setName("play")
-    .setDescription("Play song(s) from Youtube")
+    .setDescription("Play song(s) from Youtube or Spotify")
     .addStringOption((option) =>
       option
         .setName("url")
-        .setDescription("Youtube link")
+        .setDescription("Youtube link or Spotify link")
         .setRequired(true)
         .setAutocomplete(true)
     )
