@@ -67,6 +67,7 @@ class QueueMessage {
         this.subscription.audioPlayer.state.status === AudioPlayerStatus.Idle ||
         !this.subscription.currentPlaying
       ) {
+        if (this.timer) clearTimeout(this.timer);
         await this.interaction!.editReply({
           embeds: [
             new ErrorEmbed(
@@ -77,7 +78,6 @@ class QueueMessage {
           ],
         });
       } else {
-        console.log("timerId: " + this.timer);
         await this.interaction!.editReply({
           embeds: [
             this.generateEmbed(this.subscription, interaction.client.user),
