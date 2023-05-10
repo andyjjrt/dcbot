@@ -196,6 +196,7 @@ export const play = async (
         if (subscription) subscription.enqueue(track);
       });
     }
+    console.log(list)
     if (
       list.title === "" ||
       list.url === "" ||

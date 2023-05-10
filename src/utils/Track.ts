@@ -178,9 +178,32 @@ export class Track implements TrackData {
           ],
         })
         .catch(console.error);
+
+      let _url = url;
+      if (url.match("https://open.spotify.com/track/")) {
+        const id = url
+          .split("https://open.spotify.com/track/")[1]
+          .split("?")[0];
+        const response = await fetch(
+          `https://api.spotifydown.com/getId/${id}`,
+          {
+            headers: {
+              authority: "api.spotifydown.com",
+              origin: "api.spotifydown.com",
+              referer: "api.spotifydown.com",
+            },
+          }
+        );
+        const { id: ytId } = await response.json();
+        _url = `https://www.youtube.com/watch?v=${ytId}`;
+      } else if (url.match("https://open.spotify.com/playlist/")) {
+        return this.generateFromSpotifyList(interaction, url, defaultHandler);
+      }
+
       const res = await new Promise((resolve, reject) => {
+        console.log(_url);
         exec(
-          `yt-dlp --dump-single-json --no-abort-on-error ${url} > ${MUSIC_DIR}/info.json`,
+          `yt-dlp --dump-single-json --no-abort-on-error ${_url} > ${MUSIC_DIR}/info.json`,
           (error, stdout, stderr) => {
             resolve(stdout);
           }
@@ -271,5 +294,99 @@ export class Track implements TrackData {
         tracks: [],
       };
     }
+  }
+
+  private static async generateFromSpotifyList(
+    interaction: ChatInputCommandInteraction | MessageComponentInteraction,
+    url: string,
+    defaultHandler: {
+      onStart(url: string, title: string, thumbnail: string): void;
+      onError(error: Error): void;
+    }
+  ): Promise<{
+    title: string;
+    url: string;
+    thumbnail: string;
+    user: User | APIUser;
+    tracks: Track[];
+  }> {
+    const id = url.split("https://open.spotify.com/playlist/")[1].split("?")[0];
+    const listResponse = await fetch(
+      `https://api.spotifydown.com/trackList/playlist/${id}`,
+      {
+        headers: {
+          authority: "api.spotifydown.com",
+          origin: "api.spotifydown.com",
+          referer: "api.spotifydown.com",
+        },
+      }
+    );
+    const metaResponse = await fetch(
+      `https://api.spotifydown.com/metadata/playlist/${id}`,
+      {
+        headers: {
+          authority: "api.spotifydown.com",
+          origin: "api.spotifydown.com",
+          referer: "api.spotifydown.com",
+        },
+      }
+    );
+    const { trackList } = await listResponse.json();
+    const { cover, title } = await metaResponse.json();
+    let count = 0;
+    const total = trackList.length;
+    const tracks = trackList.map(async (track: any) => {
+      return fetch(`https://api.spotifydown.com/getId/${track.id}`, {
+        headers: {
+          authority: "api.spotifydown.com",
+          origin: "api.spotifydown.com",
+          referer: "api.spotifydown.com",
+        },
+      }).then(async (response) => {
+        const { id: ytId } = await response.json();
+        count++;
+        return new Track({
+          title: track.title,
+          url: `https://www.youtube.com/watch?v=${ytId}`,
+          filePath: `${MUSIC_DIR}/${ytId}.webm`,
+          thumbnail: track.cover,
+          user: interaction.member!.user,
+          ...defaultHandler,
+        });
+      });
+    });
+
+    // if (count < total) {
+    //   for await (const startTime of setInterval(2000, Date.now())) {
+    //     await interaction
+    //       .editReply({
+    //         embeds: [
+    //           new InfoEmbed(
+    //             interaction.client.user,
+    //             ":inbox_tray: Processing",
+    //             `Resolving songs ${count} / ${total}`
+    //           ),
+    //         ],
+    //       })
+    //       .catch(console.error);
+    //     if (count >= total) break;
+    //   }
+    // }
+
+    const res = await new Promise((resolve, reject) => {
+      resolve(Promise.all(tracks));
+    }).then((t) => {
+      return {
+        title: title,
+        url: url,
+        thumbnail: cover,
+        user: interaction.member!.user,
+        tracks: t as Track[],
+      };
+    });
+
+    console.log(res);
+
+    return res;
   }
 }
