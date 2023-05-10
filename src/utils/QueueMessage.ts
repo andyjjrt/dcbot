@@ -52,7 +52,7 @@ class QueueMessage {
     }
 
     this.timer = setInterval(async () => {
-      if (new Date().getTime() - this.interaction!.createdTimestamp > 360000) {
+      if (new Date().getTime() - this.interaction!.createdTimestamp > 3600000) {
         if (this.timer) clearTimeout(this.timer);
         await this.interaction!.editReply({
           embeds: [
