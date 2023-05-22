@@ -251,6 +251,7 @@ const server = http.createServer((req, res) => {
       res.writeHead(200, {
         "Content-Type": "audio/mpeg",
         "Content-Length": stat.size,
+        "Accept-Ranges": "bytes",
       });
       const readStream = fs.createReadStream(filePath);
       readStream.pipe(res);
