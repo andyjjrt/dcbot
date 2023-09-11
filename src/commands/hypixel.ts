@@ -12,9 +12,9 @@ export default {
           interaction.client.user,
           "Hypixel is a good game",
           `
-          andyjjrt: ${time(new Date("2024-09-07T17:29:38.000"), "R")}(${time(new Date("2024-09-07T17:29:38.000"), "F")})
-          watamelonnnn: ${time(new Date("2023-09-13T07:39:49.000"), "R")}(${time(new Date("2023-09-13T07:39:49.000"), "F")})
-          murasakishionnnn: ${time(new Date("2024-08-12T06:59:45.000"), "R")}(${time(new Date("2024-08-12T06:59:45.000"), "F")})
+          andyjjrt: ${time(new Date("2024-09-08T01:29:38.000"), "R")}(${time(new Date("2024-09-08T01:29:38.000"), "F")})
+          watamelonnnn: ${time(new Date("2023-09-13T15:39:49.000"), "R")}(${time(new Date("2023-09-13T15:39:49.000"), "F")})
+          murasakishionnnn: ${time(new Date("2024-08-12T14:59:45.000"), "R")}(${time(new Date("2024-08-12T14:59:45.000"), "F")})
           `
         ),
       ],
