@@ -19,6 +19,7 @@ import { play } from "./commands/play";
 import { initDB } from "./utils/db";
 import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import path from "path";
+import { log } from "./utils/log";
 
 console.log(
   chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) + " Starting..."
@@ -44,21 +45,12 @@ export const client = new Client(
 export const subscriptions = new Map<Snowflake, MusicSubscription>();
 
 client.once(Events.ClientReady, (c) => {
-  console.log(
-    chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) +
-      " Logged in as " +
-      chalk.green(c.user.tag)
-  );
+  log("SETUP", " Logged in as " + chalk.green(c.user.tag));
   c.user.setPresence({
     activities: [{ name: "/play", type: ActivityType.Listening }],
     status: "online",
   });
-  initDB().then((dbs) =>
-    console.log(
-      chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) +
-        ` ${dbs.length} db synced`
-    )
-  );
+  initDB().then((dbs) => log("SETUP", ` ${dbs.length} db synced`));
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -92,22 +84,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
     try {
-      console.log(
-        chalk.cyanBright(`[${new Date().toLocaleString()}]`) +
-          " " +
-          chalk.cyanBright("[COMMAND]") +
-          " " +
-          chalk.green(
-            interaction.member!.user.username +
-              "#" +
-              interaction.member!.user.discriminator
-          ) +
+      await command.execute(interaction);
+      log(
+        "COMMAND",
+        chalk.green(interaction.member!.user.username) +
           " used " +
           chalk.yellow(interaction.commandName) +
           " in " +
           chalk.magenta(interaction.guild!.name)
       );
-      await command.execute(interaction);
     } catch (error) {
       console.error(error);
       if (interaction.replied || interaction.deferred) {
@@ -150,6 +135,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
+client.on(Events.MessageCreate, async (message) => {
+  if (message.author.globalName && message.content.length > 0) {
+    log("LOG", chalk.green(message.author.globalName + ": ") + message.content);
+  }
+});
+
 client.on(Events.VoiceStateUpdate, (oldState, newState) => {
   // if (oldState.channelId === newState.channelId) {
   //   console.log('a user has not moved!')
@@ -158,16 +149,9 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
   //   console.log('a user switched channels')
   // }
   if (oldState.channelId === null) {
-    console.log(
-      chalk.cyanBright(`[${new Date().toLocaleString()}]`) +
-        " " +
-        chalk.cyanBright("[USER]") +
-        " " +
-        chalk.green(
-          newState.member!.user.username +
-            "#" +
-            newState.member!.user.discriminator
-        ) +
+    log(
+      "USER",
+      chalk.green(newState.member!.user.username) +
         " joined " +
         chalk.yellow(newState.channel!.name) +
         " in " +
@@ -191,20 +175,13 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
     }
   }
   if (newState.channelId === null) {
-    console.log(
-      chalk.cyanBright(`[${new Date().toLocaleString()}]`) +
-        " " +
-        chalk.cyanBright("[USER]") +
-        " " +
-        chalk.green(
-          oldState.member!.user.username +
-            "#" +
-            oldState.member!.user.discriminator
-        ) +
+    log(
+      "USER",
+      chalk.green(newState.member!.user.username) +
         " left " +
-        chalk.yellow(oldState.channel!.name) +
+        chalk.yellow(newState.channel!.name) +
         " in " +
-        chalk.magenta(oldState.guild!.name)
+        chalk.magenta(newState.guild!.name)
     );
     const guildId = oldState.guild.id;
     const subscription = subscriptions.get(guildId);
@@ -230,7 +207,7 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
             subscription.voiceConnection.destroy();
             subscriptions.delete(guildId);
           }
-        }, 10000);
+        }, 60000);
       }
     }
   }
@@ -267,7 +244,4 @@ server.on("clientError", (err, socket) => {
 });
 
 server.listen(PORT || 3000);
-console.log(
-  chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) +
-    " Server Starting..."
-);
+log("SETUP", " Server Starting...")
