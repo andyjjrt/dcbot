@@ -213,7 +213,6 @@ export class Track implements TrackData {
           }
         );
       }).then(async (res) => {
-        console.log(res)
         await interaction
           .editReply({
             embeds: [

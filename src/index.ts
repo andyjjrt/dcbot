@@ -21,9 +21,7 @@ import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import path from "path";
 import { log } from "./utils/log";
 
-console.log(
-  chalk.cyanBright(`[${new Date().toLocaleString()}] [SETUP]`) + " Starting..."
-);
+log("SETUP", " Starting...");
 
 // Create a new client instance
 export const client = new Client(
@@ -244,4 +242,4 @@ server.on("clientError", (err, socket) => {
 });
 
 server.listen(PORT || 3000);
-log("SETUP", "Server Starting...")
+log("SETUP", "Server Starting...");

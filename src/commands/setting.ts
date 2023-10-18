@@ -109,7 +109,6 @@ export default {
       const startUsage = process.cpuUsage();
       const now = Date.now();
       while (Date.now() - now < 500);
-      console.log(process.cpuUsage(startUsage));
       await interaction.followUp({
         embeds: [
           new InfoEmbed(interaction.client.user, ":man_shrugging:  Bump!", "")

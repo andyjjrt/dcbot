@@ -102,7 +102,6 @@ class QueueMessage {
       return new ErrorEmbed(user, "Error", "Nothing is currently playing!");
     } else {
       const { metadata, startTime, endTime } = subscription.currentPlaying!;
-      console.log(metadata);
       const current = `**Playing:**\n[${metadata.title}](${metadata.url})`;
       const queue =
         subscription.queue.length === 0
