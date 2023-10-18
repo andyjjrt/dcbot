@@ -64,10 +64,12 @@ class QueueMessage {
           ],
         });
       } else if (
-        this.subscription.audioPlayer.state.status === AudioPlayerStatus.Idle ||
-        !this.subscription.currentPlaying
+        (this.subscription.audioPlayer.state.status ===
+          AudioPlayerStatus.Idle ||
+          !this.subscription.currentPlaying) &&
+        this.subscription.queue.length === 0
       ) {
-        if (this.timer && this.subscription.queue.length === 0) clearTimeout(this.timer);
+        if (this.timer) clearTimeout(this.timer);
         await this.interaction!.editReply({
           embeds: [
             new ErrorEmbed(
@@ -93,14 +95,15 @@ class QueueMessage {
     user: ClientUser | User | APIUser
   ) {
     if (
-      subscription.audioPlayer.state.status === AudioPlayerStatus.Idle ||
-      !subscription.currentPlaying
+      (subscription.audioPlayer.state.status === AudioPlayerStatus.Idle ||
+        !subscription.currentPlaying) &&
+      subscription.queue.length === 0
     ) {
       return new ErrorEmbed(user, "Error", "Nothing is currently playing!");
     } else {
-      const { title, url, thumbnail, startTime, endTime } =
-        subscription.currentPlaying;
-      const current = `**Playing:**\n[${title}](${url})`;
+      const { metadata, startTime, endTime } = subscription.currentPlaying!;
+      console.log(metadata);
+      const current = `**Playing:**\n[${metadata.title}](${metadata.url})`;
       const queue =
         subscription.queue.length === 0
           ? ""
@@ -109,7 +112,9 @@ class QueueMessage {
               .slice(0, 10)
               .map(
                 (track, index) =>
-                  `**${index + 1}. ** [${track.title}](${track.url})`
+                  `**${index + 1}. ** [${track.metadata.title}](${
+                    track.metadata.url
+                  })`
               )
               .join("\n");
       const remain =
@@ -131,7 +136,7 @@ class QueueMessage {
         ":arrow_forward:  Queue",
         `${current}\n\n:clock10:  \`${timeString()}\`\n\n${queue}${remain}`
       )
-        .setThumbnail(thumbnail)
+        .setThumbnail(metadata.thumbnail)
         .addFields({ name: "Loop", value: subscription.loop, inline: true });
     }
   }

@@ -144,9 +144,9 @@ export class MusicSubscription {
         } else if (newState.status === AudioPlayerStatus.Playing) {
           // If the Playing state has been entered, then a new track has started playback.
           (newState.resource as AudioResource<Track>).metadata.onStart(
-            (newState.resource as AudioResource<Track>).metadata.url,
-            (newState.resource as AudioResource<Track>).metadata.title,
-            (newState.resource as AudioResource<Track>).metadata.thumbnail
+            (newState.resource as AudioResource<Track>).metadata.metadata.url,
+            (newState.resource as AudioResource<Track>).metadata.metadata.title,
+            (newState.resource as AudioResource<Track>).metadata.metadata.thumbnail
           );
         }
       }
@@ -258,7 +258,7 @@ export class MusicSubscription {
         time: new Date().getTime(),
         guildId: this.voiceConnection.joinConfig.guildId,
         userId: this.currentPlaying.user.id,
-        title: this.currentPlaying.title,
+        title: this.currentPlaying.metadata.title,
         url: this.currentPlaying.url,
       });
     } catch (error) {

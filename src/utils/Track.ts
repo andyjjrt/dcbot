@@ -28,7 +28,6 @@ limitations under the License.
 
 */
 
-import ytdlCore from "ytdl-core";
 import { exec } from "child_process";
 import fs, { createReadStream } from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice";
@@ -40,17 +39,20 @@ import {
 } from "discord.js";
 import { InfoEmbed } from "./Embed";
 import { setInterval } from "timers/promises";
-import { client } from "..";
 import { getVideoDurationInSeconds } from "get-video-duration";
+import { getPlayListMetaData, getPlayListUrl, getTrackMetaData, getTrackUrl } from "./SpotifyDown";
 const { MUSIC_DIR } = process.env;
 
 /**
  * This is the data required to create a Track object.
  */
 export interface TrackData {
+  metadata: {
+    url: string;
+    title: string;
+    thumbnail: string;
+  };
   url: string;
-  title: string;
-  thumbnail: string;
   filePath: string;
   user: User | APIUser;
   startTime: number;
@@ -72,8 +74,11 @@ const noop = () => {};
  */
 export class Track implements TrackData {
   public readonly url: string;
-  public readonly title: string;
-  public readonly thumbnail: string;
+  public readonly metadata: {
+    url: string;
+    title: string;
+    thumbnail: string;
+  } = { url: "", title: "", thumbnail: "" };
   public readonly filePath: string;
   public readonly user: User | APIUser;
   public startTime: number;
@@ -87,24 +92,25 @@ export class Track implements TrackData {
 
   private constructor({
     url,
-    title,
-    thumbnail,
+    metadata,
     filePath,
     onStart,
     onError,
     user,
   }: {
     url: string;
-    title: string;
-    thumbnail: string;
+    metadata: {
+      url: string;
+      title: string;
+      thumbnail: string;
+    };
     filePath: string;
     user: User | APIUser;
     onStart: (url: string, title: string, thumbnail: string) => void;
     onError: (error: Error) => void;
   }) {
     this.url = url;
-    this.title = title;
-    this.thumbnail = thumbnail;
+    this.metadata = metadata;
     this.filePath = filePath;
     this.user = user;
     this.onStart = onStart;
@@ -121,6 +127,7 @@ export class Track implements TrackData {
           (error, stdout, stderr) => {
             if (error) {
               console.error(error);
+              reject(error);
             }
             resolve(stdout);
           }
@@ -154,7 +161,6 @@ export class Track implements TrackData {
     title: string;
     url: string;
     thumbnail: string;
-    user: User | APIUser;
     tracks: Track[];
   }> {
     const defaultHandler = {
@@ -179,36 +185,35 @@ export class Track implements TrackData {
         })
         .catch(console.error);
 
-      let _url = url;
-      if (url.match("https://open.spotify.com/track/")) {
-        const id = url
-          .split("https://open.spotify.com/track/")[1]
-          .split("?")[0];
-        const response = await fetch(
-          `https://api.spotifydown.com/getId/${id}`,
-          {
-            headers: {
-              authority: "api.spotifydown.com",
-              origin: "api.spotifydown.com",
-              referer: "api.spotifydown.com",
-            },
-          }
-        );
-        const { id: ytId } = await response.json();
-        _url = `https://www.youtube.com/watch?v=${ytId}`;
-      } else if (url.match("https://open.spotify.com/playlist/")) {
-        return this.generateFromSpotifyList(interaction, url, defaultHandler);
+      const urlObj = new URL(url);
+      let musicUrl = "";
+      if (urlObj.hostname === "open.spotify.com") {
+        const path = urlObj.pathname.split("/");
+        if (path.includes("track")) {
+          return this.spotifyTrack(url, interaction.member!.user, defaultHandler)
+        } else if (path.includes("playlist")) {
+          return this.spotifyList(url, interaction.member!.user, defaultHandler)
+        }
+      } else if (urlObj.hostname === "www.youtube.com" || urlObj.hostname === "youtube.com") {
+        const path = urlObj.pathname.split("/");
+        if (path.includes("playlist")) {
+          const id = urlObj.searchParams.get("list");
+          musicUrl = `https://youtube.com/playlist?list=${id}`;
+        }else if(path.includes("watch")) {
+          const id = urlObj.searchParams.get("v");
+          musicUrl = `https://www.youtube.com/watch?v=${id}`;
+        }
       }
 
       const res = await new Promise((resolve, reject) => {
-        console.log(_url);
         exec(
-          `yt-dlp --dump-single-json --no-abort-on-error ${_url} > ${MUSIC_DIR}/info.json`,
+          `yt-dlp --dump-single-json --no-abort-on-error --flat-playlist ${musicUrl} > ${MUSIC_DIR}/info.json`,
           (error, stdout, stderr) => {
             resolve(stdout);
           }
         );
-      }).then(async () => {
+      }).then(async (res) => {
+        console.log(res)
         await interaction
           .editReply({
             embeds: [
@@ -232,10 +237,13 @@ export class Track implements TrackData {
             const filePath = `${MUSIC_DIR}/${track.id}.webm`;
             tracks.push(
               new Track({
-                title: track.title,
-                url: track.original_url,
+                metadata: {
+                  title: track.title,
+                  thumbnail: track.thumbnails[0].url,
+                  url: track.url,
+                },
+                url: url,
                 filePath,
-                thumbnail: track.thumbnails[0].url,
                 user: interaction.member!.user,
                 ...defaultHandler,
               })
@@ -245,10 +253,13 @@ export class Track implements TrackData {
         } else {
           tracks.push(
             new Track({
-              title: file.title,
-              url: file.original_url,
+              metadata: {
+                title: file.title,
+                thumbnail: file.thumbnails[0].url,
+                url: file.original_url,
+              },
+              url: url,
               filePath,
-              thumbnail: file.thumbnails[0].url,
               user: interaction.member!.user,
               ...defaultHandler,
             })
@@ -277,7 +288,6 @@ export class Track implements TrackData {
           title: file.title as string,
           url: file.original_url as string,
           thumbnail: file.thumbnails[0].url,
-          user: interaction.member!.user,
           tracks: tracks,
         };
       });
@@ -290,103 +300,86 @@ export class Track implements TrackData {
         url: url,
         thumbnail:
           "https://memeprod.ap-south-1.linodeobjects.com/user-template/63e160366afc7f7a7a1e5de55fd0e38f.png",
-        user: interaction.member!.user,
         tracks: [],
       };
     }
   }
 
-  private static async generateFromSpotifyList(
-    interaction: ChatInputCommandInteraction | MessageComponentInteraction,
+  private static async spotifyTrack(
     url: string,
-    defaultHandler: {
+    user: User | APIUser,
+    handler: {
       onStart(url: string, title: string, thumbnail: string): void;
       onError(error: Error): void;
     }
-  ): Promise<{
-    title: string;
-    url: string;
-    thumbnail: string;
-    user: User | APIUser;
-    tracks: Track[];
-  }> {
-    const id = url.split("https://open.spotify.com/playlist/")[1].split("?")[0];
-    const listResponse = await fetch(
-      `https://api.spotifydown.com/trackList/playlist/${id}`,
-      {
-        headers: {
-          authority: "api.spotifydown.com",
-          origin: "api.spotifydown.com",
-          referer: "api.spotifydown.com",
-        },
-      }
-    );
-    const metaResponse = await fetch(
-      `https://api.spotifydown.com/metadata/playlist/${id}`,
-      {
-        headers: {
-          authority: "api.spotifydown.com",
-          origin: "api.spotifydown.com",
-          referer: "api.spotifydown.com",
-        },
-      }
-    );
-    const { trackList } = await listResponse.json();
-    const { cover, title } = await metaResponse.json();
-    let count = 0;
-    const total = trackList.length;
-    const tracks = trackList.map(async (track: any) => {
-      return fetch(`https://api.spotifydown.com/getId/${track.id}`, {
-        headers: {
-          authority: "api.spotifydown.com",
-          origin: "api.spotifydown.com",
-          referer: "api.spotifydown.com",
-        },
-      }).then(async (response) => {
-        const { id: ytId } = await response.json();
-        count++;
-        return new Track({
-          title: track.title,
+  ) {
+    const urlObj = new URL(url);
+    const path = urlObj.pathname.split("/");
+    const id = path.slice(-1)[0];
+    const ytId = await getTrackUrl(id);
+    const metaData = await getTrackMetaData(id);
+
+    return {
+      tracks: [
+        new Track({
+          metadata: {
+            title: metaData.title,
+            thumbnail: metaData.cover,
+            url: `https://open.spotify.com/track/${id}`,
+          },
           url: `https://www.youtube.com/watch?v=${ytId}`,
           filePath: `${MUSIC_DIR}/${ytId}.webm`,
-          thumbnail: track.cover,
-          user: interaction.member!.user,
-          ...defaultHandler,
-        });
-      });
+          user: user,
+          ...handler,
+        }),
+      ],
+      url: url,
+      thumbnail: metaData.cover,
+      title: metaData.title,
+    };
+  }
+
+  private static async spotifyList(
+    url: string,
+    user: User | APIUser,
+    handler: {
+      onStart(url: string, title: string, thumbnail: string): void;
+      onError(error: Error): void;
+    }
+  ) {
+    const urlObj = new URL(url);
+    const path = urlObj.pathname.split("/");
+    const id = path.slice(-1)[0];
+    const trackIdList = await getPlayListUrl(id);
+    const metaData = await getPlayListMetaData(id);
+
+    const tracks = await new Promise((resolve, reject) => {
+      resolve(
+        Promise.all<Track>(
+          trackIdList.map(async (track: any) => {
+            const ytId = await getTrackUrl(track.id);
+            const metaData = await getTrackMetaData(track.id);
+            return new Track({
+              metadata: {
+                title: metaData.title,
+                thumbnail: metaData.cover,
+                url: `https://open.spotify.com/track/${track.id}`,
+              },
+              url: `https://www.youtube.com/watch?v=${ytId}`,
+              filePath: `${MUSIC_DIR}/${ytId}.webm`,
+              user: user,
+              ...handler,
+            });
+          })
+        )
+      );
     });
 
-    // if (count < total) {
-    //   for await (const startTime of setInterval(2000, Date.now())) {
-    //     await interaction
-    //       .editReply({
-    //         embeds: [
-    //           new InfoEmbed(
-    //             interaction.client.user,
-    //             ":inbox_tray: Processing",
-    //             `Resolving songs ${count} / ${total}`
-    //           ),
-    //         ],
-    //       })
-    //       .catch(console.error);
-    //     if (count >= total) break;
-    //   }
-    // }
-
-    const res = await new Promise((resolve, reject) => {
-      resolve(Promise.all(tracks));
-    }).then((t) => {
-      return {
-        title: title,
-        url: url,
-        thumbnail: cover,
-        user: interaction.member!.user,
-        tracks: t as Track[],
-      };
-    });
-
-    console.log(res);
-
-    return res;
+    return {
+      tracks: tracks as Track[],
+      url: url,
+      thumbnail: metaData.cover,
+      title: metaData.title,
+    };
   }
 }
