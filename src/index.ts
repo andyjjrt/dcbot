@@ -45,12 +45,12 @@ export const client = new Client(
 export const subscriptions = new Map<Snowflake, MusicSubscription>();
 
 client.once(Events.ClientReady, (c) => {
-  log("SETUP", " Logged in as " + chalk.green(c.user.tag));
+  log("SETUP", "Logged in as " + chalk.green(c.user.tag));
   c.user.setPresence({
     activities: [{ name: "/play", type: ActivityType.Listening }],
     status: "online",
   });
-  initDB().then((dbs) => log("SETUP", ` ${dbs.length} db synced`));
+  initDB().then((dbs) => log("SETUP", `${dbs.length} db synced`));
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -177,11 +177,11 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
   if (newState.channelId === null) {
     log(
       "USER",
-      chalk.green(newState.member!.user.username) +
+      chalk.green(oldState.member!.user.username) +
         " left " +
-        chalk.yellow(newState.channel!.name) +
+        chalk.yellow(oldState.channel!.name) +
         " in " +
-        chalk.magenta(newState.guild!.name)
+        chalk.magenta(oldState.guild!.name)
     );
     const guildId = oldState.guild.id;
     const subscription = subscriptions.get(guildId);
@@ -244,4 +244,4 @@ server.on("clientError", (err, socket) => {
 });
 
 server.listen(PORT || 3000);
-log("SETUP", " Server Starting...")
+log("SETUP", "Server Starting...")
