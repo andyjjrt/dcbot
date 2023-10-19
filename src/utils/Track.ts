@@ -210,7 +210,7 @@ export class Track implements TrackData {
         metadata: {
           title: track.title,
           thumbnail: track.thumbnails[0].url,
-          url: track.url,
+          url: track.original_url,
         },
         url: url,
         filePath: `${MUSIC_DIR}/${track.id}.webm`,

@@ -129,11 +129,6 @@ export const play = async (
 
   try {
     // Attempt to create a Track from the user's video URL
-    await interaction
-      .editReply({
-        embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "")],
-      })
-      .catch(console.error);
     const list = await Track.from(
       url,
       {

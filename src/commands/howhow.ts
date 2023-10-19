@@ -16,15 +16,12 @@ export default {
     const sentence = interaction.options.get("sentence", true).value as string;
     sentence.replace(" ", "");
     const pin = pinyin(sentence, { toneType: "num" });
-    console.log(pin);
     const promise = new Promise((resolve, reject) => {
       const ffmpegProcess = ffmpeg()
         .on("error", function (err) {
-          console.log("An error occurred: " + err.message);
           reject(err);
         })
         .on("end", function () {
-          console.log("Merging finished !");
           resolve(true);
         });
       pin.split(" ").forEach((value) => {

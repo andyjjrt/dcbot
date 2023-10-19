@@ -76,7 +76,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
           ephemeral: true,
         });
       } else {
-        await interaction.followUp({
+        await interaction.reply({
           content: "There was an error while executing this command!",
           ephemeral: true,
         });
@@ -92,12 +92,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await command.autocomplete(interaction);
     } catch (error) {
       console.error(error);
-    }
-  } else if (interaction.isStringSelectMenu()) {
-    if (new Date().getTime() - interaction.message.createdTimestamp > 60000) return;
-    if (interaction.customId === "#SearchSelectMenu") {
-      await interaction.deferReply();
-      play(interaction, `https://www.youtube.com/watch?v=${interaction.values[0]}`, false, false);
     }
   }
 });
