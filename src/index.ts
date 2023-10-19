@@ -15,7 +15,7 @@ import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import path from "path";
 import { log } from "./utils/log";
 
-log("SETUP", " Starting...");
+log("SETUP", "Starting...");
 
 // Create a new client instance
 export const client = new Client(
@@ -47,13 +47,6 @@ client.once(Events.ClientReady, (c) => {
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isChatInputCommand()) {
-    const commandChannel = interaction.channel;
-    if (!(commandChannel instanceof TextChannel)) {
-      await interaction.reply({
-        embeds: [new ErrorEmbed(interaction.client.user, "Error", "Please use command in a **Text Channel**")],
-      });
-      return;
-    }
     if ((BANNED_LIST?.split(",") || []).indexOf(interaction.user.id) >= 0) {
       await interaction.reply({
         embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're banned")],
@@ -66,7 +59,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
     try {
-      await command.execute(interaction);
       log(
         "COMMAND",
         chalk.green(interaction.member!.user.username) +
@@ -75,6 +67,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
           " in " +
           chalk.magenta(interaction.guild!.name)
       );
+      await command.execute(interaction);
     } catch (error) {
       console.error(error);
       if (interaction.replied || interaction.deferred) {

@@ -26,6 +26,13 @@ export default {
     .addBooleanOption((option) => option.setName("top").setDescription("Force play top"))
     .addBooleanOption((option) => option.setName("shuffle").setDescription("Shuffle list before queue")),
   async execute(interaction: ChatInputCommandInteraction) {
+    const commandChannel = interaction.channel;
+    if (!(commandChannel instanceof TextChannel)) {
+      await interaction.reply({
+        embeds: [new ErrorEmbed(interaction.client.user, "Error", "Please use command in a **Text Channel**")],
+      });
+      return;
+    }
     await interaction.deferReply();
     const url = interaction.options.get("url", true).value as string;
     const shuffle = interaction.options.get("shuffle")?.value ? true : false;

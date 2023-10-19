@@ -89,6 +89,10 @@ export default {
             .addFields({
               name: "Version",
               value: require("discord.js/package.json").version,
+            })
+            .addFields({
+              name: "Author",
+              value: "[andyjjrt](https://andyjjrt.cc)",
             }),
         ],
         ephemeral: true,

@@ -1,5 +1,5 @@
 import { ErrorEmbed, InfoEmbed } from "../utils/Embed";
-import { SlashCommandBuilder, CommandInteraction, ActionRowBuilder, StringSelectMenuBuilder, time } from "discord.js";
+import { SlashCommandBuilder, CommandInteraction, ActionRowBuilder, StringSelectMenuBuilder, time, TextChannel } from "discord.js";
 import { client } from "../index";
 import { Setting } from "../utils/db/schema";
 
@@ -10,6 +10,13 @@ export default {
     .setDescription("Search with Youtube API")
     .addStringOption((option) => option.setName("keyword").setDescription("Keyword").setRequired(true)),
   async execute(interaction: CommandInteraction) {
+    const commandChannel = interaction.channel;
+    if (!(commandChannel instanceof TextChannel)) {
+      await interaction.reply({
+        embeds: [new ErrorEmbed(interaction.client.user, "Error", "Please use command in a **Text Channel**")],
+      });
+      return;
+    }
     try {
       const guildId = interaction.guildId!;
       const setting = await Setting.findOne({ where: { guildId: guildId } });
