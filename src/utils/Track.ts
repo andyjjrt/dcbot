@@ -1,3 +1,4 @@
+import { play } from "./../commands/play";
 /*
 
 Copyright 2023 andyjjrt
@@ -28,19 +29,13 @@ limitations under the License.
 
 */
 
-import { exec } from "child_process";
 import fs, { createReadStream } from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice";
-import {
-  APIUser,
-  ChatInputCommandInteraction,
-  MessageComponentInteraction,
-  User,
-} from "discord.js";
+import { APIUser, ChatInputCommandInteraction, MessageComponentInteraction, User } from "discord.js";
 import { InfoEmbed } from "./Embed";
-import { setInterval } from "timers/promises";
 import { getVideoDurationInSeconds } from "get-video-duration";
 import { getPlayListMetaData, getPlayListUrl, getTrackMetaData, getTrackUrl } from "./SpotifyDown";
+import YTDlpWrap from "yt-dlp-wrap";
 const { MUSIC_DIR } = process.env;
 
 /**
@@ -83,11 +78,7 @@ export class Track implements TrackData {
   public readonly user: User | APIUser;
   public startTime: number;
   public endTime: number;
-  public readonly onStart: (
-    url: string,
-    title: string,
-    thumbnail: string
-  ) => void;
+  public readonly onStart: (url: string, title: string, thumbnail: string) => void;
   public readonly onError: (error: Error) => void;
 
   private constructor({
@@ -121,22 +112,19 @@ export class Track implements TrackData {
 
   public async createAudioResource() {
     if (!fs.existsSync(this.filePath)) {
-      await new Promise((resolve, reject) => {
-        exec(
-          `yt-dlp -o "${MUSIC_DIR}/%(id)s.%(ext)s" --format "bestaudio" --quiet --file-access-retries 1 ${this.url}`,
-          (error, stdout, stderr) => {
-            if (error) {
-              console.error(error);
-              reject(error);
-            }
-            resolve(stdout);
-          }
-        );
-      });
+      const ytDlpWrap = new YTDlpWrap();
+      await ytDlpWrap.execPromise([
+        this.url,
+        "-o",
+        `${MUSIC_DIR}/%(id)s.%(ext)s`,
+        "--format",
+        "bestaudio",
+        "--quie",
+        "--file-access-retries",
+        "1",
+      ]);
     }
-    const duration = await getVideoDurationInSeconds(
-      createReadStream(this.filePath)
-    );
+    const duration = await getVideoDurationInSeconds(createReadStream(this.filePath));
     this.startTime = new Date().getTime();
     this.endTime = new Date().getTime() + duration * 1000;
     return createAudioResource(createReadStream(this.filePath), {
@@ -172,136 +160,72 @@ export class Track implements TrackData {
       },
     };
 
-    try {
-      await interaction
-        .editReply({
-          embeds: [
-            new InfoEmbed(
-              interaction.client.user,
-              ":inbox_tray: Processing",
-              "Fetching data"
-            ),
-          ],
-        })
-        .catch(console.error);
+    await interaction.editReply({
+      embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "Fetching data")],
+    });
 
-      const urlObj = new URL(url);
-      let musicUrl = "";
-      if (urlObj.hostname === "open.spotify.com") {
-        const path = urlObj.pathname.split("/");
-        if (path.includes("track")) {
-          return this.spotifyTrack(url, interaction.member!.user, defaultHandler)
-        } else if (path.includes("playlist")) {
-          return this.spotifyList(url, interaction.member!.user, defaultHandler)
-        }
-      } else if (urlObj.hostname === "www.youtube.com" || urlObj.hostname === "youtube.com") {
-        const path = urlObj.pathname.split("/");
-        if (path.includes("playlist")) {
-          const id = urlObj.searchParams.get("list");
-          musicUrl = `https://youtube.com/playlist?list=${id}`;
-        }else if(path.includes("watch")) {
-          const id = urlObj.searchParams.get("v");
-          musicUrl = `https://www.youtube.com/watch?v=${id}`;
-        }
+    const urlObj = new URL(url);
+    let musicUrl = "";
+    if (urlObj.hostname === "open.spotify.com") {
+      const path = urlObj.pathname.split("/");
+      if (path.includes("track")) {
+        return this.spotifyTrack(url, interaction.member!.user, defaultHandler);
+      } else if (path.includes("playlist")) {
+        return this.spotifyList(url, interaction.member!.user, defaultHandler);
       }
-
-      const res = await new Promise((resolve, reject) => {
-        exec(
-          `yt-dlp --dump-single-json --no-abort-on-error --flat-playlist ${musicUrl} > ${MUSIC_DIR}/info.json`,
-          (error, stdout, stderr) => {
-            resolve(stdout);
-          }
-        );
-      }).then(async (res) => {
-        await interaction
-          .editReply({
-            embeds: [
-              new InfoEmbed(
-                interaction.client.user,
-                ":inbox_tray: Processing",
-                "Resolving data"
-              ),
-            ],
-          })
-          .catch(console.error);
-        const file = await JSON.parse(
-          fs.readFileSync(`${MUSIC_DIR}/info.json`).toString()
-        );
-        const filePath = `${MUSIC_DIR}/${file.id}.webm`;
-        let tracks: Track[] = [];
-        const total = file.entries?.length || 1;
-        let count = 0;
-        if (file.entries instanceof Array) {
-          file.entries.map((track: any) => {
-            const filePath = `${MUSIC_DIR}/${track.id}.webm`;
-            tracks.push(
-              new Track({
-                metadata: {
-                  title: track.title,
-                  thumbnail: track.thumbnails[0].url,
-                  url: track.url,
-                },
-                url: url,
-                filePath,
-                user: interaction.member!.user,
-                ...defaultHandler,
-              })
-            );
-            count++;
-          });
-        } else {
-          tracks.push(
-            new Track({
-              metadata: {
-                title: file.title,
-                thumbnail: file.thumbnails[0].url,
-                url: file.original_url,
-              },
-              url: url,
-              filePath,
-              user: interaction.member!.user,
-              ...defaultHandler,
-            })
-          );
-          count++;
-        }
-
-        if (count < total) {
-          for await (const startTime of setInterval(2000, Date.now())) {
-            await interaction
-              .editReply({
-                embeds: [
-                  new InfoEmbed(
-                    interaction.client.user,
-                    ":inbox_tray: Processing",
-                    `Resolving songs ${count} / ${total}`
-                  ),
-                ],
-              })
-              .catch(console.error);
-            if (count >= total) break;
-          }
-        }
-
-        return {
-          title: file.title as string,
-          url: file.original_url as string,
-          thumbnail: file.thumbnails[0].url,
-          tracks: tracks,
-        };
-      });
-
-      return res;
-    } catch (e) {
-      console.error(e);
-      return {
-        title: url,
-        url: url,
-        thumbnail:
-          "https://memeprod.ap-south-1.linodeobjects.com/user-template/63e160366afc7f7a7a1e5de55fd0e38f.png",
-        tracks: [],
-      };
+    } else if (urlObj.hostname === "www.youtube.com" || urlObj.hostname === "youtube.com") {
+      const path = urlObj.pathname.split("/");
+      if (path.includes("playlist")) {
+        const id = urlObj.searchParams.get("list");
+        musicUrl = `https://youtube.com/playlist?list=${id}`;
+      } else if (path.includes("watch")) {
+        const id = urlObj.searchParams.get("v");
+        musicUrl = `https://www.youtube.com/watch?v=${id}`;
+      }
     }
+
+    // Get metadata
+    const ytDlpWrap = new YTDlpWrap();
+    let stdout = await ytDlpWrap.execPromise([
+      "--dump-single-json",
+      "--no-abort-on-error",
+      "--flat-playlist",
+      musicUrl,
+    ]);
+    let metadata = JSON.parse(stdout);
+    let title = metadata.title;
+    let thumbnail = metadata.thumbnails[0].url;
+    if (!(metadata.entries instanceof Array)) {
+      metadata = [metadata];
+    } else {
+      metadata = metadata.entries;
+    }
+
+    await interaction.editReply({
+      embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "Resolving data")],
+    });
+
+    // Make track list
+    const tracks = metadata.map((track: any) => {
+      return new Track({
+        metadata: {
+          title: track.title,
+          thumbnail: track.thumbnails[0].url,
+          url: track.url,
+        },
+        url: url,
+        filePath: `${MUSIC_DIR}/${track.id}.webm`,
+        user: interaction.member!.user,
+        ...defaultHandler,
+      });
+    });
+
+    return {
+      title: title,
+      url: url,
+      thumbnail: thumbnail,
+      tracks: tracks,
+    };
   }
 
   private static async spotifyTrack(
