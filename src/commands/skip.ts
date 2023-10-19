@@ -14,9 +14,22 @@ export default {
         if (subscription.voiceConnection.joinConfig.channelId === interaction.member.voice.channelId) {
           subscription.skipFlag = true;
           subscription.audioPlayer.stop();
-          await interaction.reply({
-            embeds: [new SuccessEmbed(interaction.client.user, "Sucess", "Skipped current song")],
-          });
+          if (subscription.queue.length > 0) {
+            const track = subscription.queue[0];
+            await interaction.reply({
+              embeds: [
+                new SuccessEmbed(
+                  interaction.member!.user,
+                  "Success",
+                  `Skipped to **[${track.metadata.title}](${track.metadata.url})**`
+                ).setThumbnail(track.metadata.thumbnail),
+              ],
+            });
+          } else {
+            await interaction.reply({
+              embeds: [new SuccessEmbed(interaction.client.user, "Sucess", "Skipped current song")],
+            });
+          }
         } else {
           await interaction.reply({
             embeds: [
