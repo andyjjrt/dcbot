@@ -6,20 +6,13 @@ export default class MyClient extends Client<true> {
   collection: Collection<string, any>;
   private _clientId: string;
   private _token: string;
-  constructor(
-    options: ClientOptions,
-    clientId = "",
-    token = "",
-    commandsPath = ""
-  ) {
+  constructor(options: ClientOptions, clientId = "", token = "", commandsPath = "") {
     super(options);
     this.collection = new Collection();
     this._clientId = clientId;
     this._token = token;
     const commandFiles = readdirSync(commandsPath).filter(
-      (file) =>
-        (file.endsWith(".ts") || file.endsWith(".js")) &&
-        !file.includes("disable")
+      (file) => (file.endsWith(".ts") || file.endsWith(".js")) && !file.includes("disable")
     );
     for (const file of commandFiles) {
       const command = require(path.join(commandsPath, file));

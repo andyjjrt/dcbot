@@ -1,11 +1,5 @@
 import { ErrorEmbed, InfoEmbed } from "./Embed";
-import {
-  APIUser,
-  ChatInputCommandInteraction,
-  ClientUser,
-  Message,
-  User,
-} from "discord.js";
+import { APIUser, ChatInputCommandInteraction, ClientUser, Message, User } from "discord.js";
 import { MusicSubscription } from "./Subscription";
 import { AudioPlayerStatus } from "@discordjs/voice";
 
@@ -22,13 +16,7 @@ class QueueMessage {
     if (this.timer) clearTimeout(this.timer);
     if (this.interaction) {
       await this.interaction!.editReply({
-        embeds: [
-          new ErrorEmbed(
-            this.interaction!.client.user,
-            "Error",
-            "Nothing is currently playing!"
-          ),
-        ],
+        embeds: [new ErrorEmbed(this.interaction!.client.user, "Error", "Nothing is currently playing!")],
       });
     }
   }
@@ -41,13 +29,7 @@ class QueueMessage {
     if (this.timer) clearTimeout(this.timer);
     if (this.interaction) {
       await this.interaction!.editReply({
-        embeds: [
-          new InfoEmbed(
-            this.interaction!.client.user,
-            ":arrow_forward:  Queue",
-            `${this.url}`
-          ),
-        ],
+        embeds: [new InfoEmbed(this.interaction!.client.user, ":arrow_forward:  Queue", `${this.url}`)],
       });
     }
 
@@ -55,48 +37,28 @@ class QueueMessage {
       if (new Date().getTime() - this.interaction!.createdTimestamp > 3600000) {
         if (this.timer) clearTimeout(this.timer);
         await this.interaction!.editReply({
-          embeds: [
-            new InfoEmbed(
-              this.interaction!.client.user,
-              ":arrow_forward:  Queue",
-              `${this.url}`
-            ),
-          ],
+          embeds: [new InfoEmbed(this.interaction!.client.user, ":arrow_forward:  Queue", `${this.url}`)],
         });
       } else if (
-        (this.subscription.audioPlayer.state.status ===
-          AudioPlayerStatus.Idle ||
-          !this.subscription.currentPlaying) &&
+        (this.subscription.audioPlayer.state.status === AudioPlayerStatus.Idle || !this.subscription.currentPlaying) &&
         this.subscription.queue.length === 0
       ) {
         if (this.timer) clearTimeout(this.timer);
         await this.interaction!.editReply({
-          embeds: [
-            new ErrorEmbed(
-              this.interaction!.client.user,
-              "Error",
-              "Nothing is currently playing!"
-            ),
-          ],
+          embeds: [new ErrorEmbed(this.interaction!.client.user, "Error", "Nothing is currently playing!")],
         });
       } else {
         await this.interaction!.editReply({
-          embeds: [
-            this.generateEmbed(this.subscription, interaction.client.user),
-          ],
+          embeds: [this.generateEmbed(this.subscription, interaction.client.user)],
         });
       }
     }, 1000);
     this.interaction = interaction;
   }
 
-  private generateEmbed(
-    subscription: MusicSubscription,
-    user: ClientUser | User | APIUser
-  ) {
+  private generateEmbed(subscription: MusicSubscription, user: ClientUser | User | APIUser) {
     if (
-      (subscription.audioPlayer.state.status === AudioPlayerStatus.Idle ||
-        !subscription.currentPlaying) &&
+      (subscription.audioPlayer.state.status === AudioPlayerStatus.Idle || !subscription.currentPlaying) &&
       subscription.queue.length === 0
     ) {
       return new ErrorEmbed(user, "Error", "Nothing is currently playing!");
@@ -109,26 +71,19 @@ class QueueMessage {
           : "**Next: **\n" +
             subscription.queue
               .slice(0, 10)
-              .map(
-                (track, index) =>
-                  `**${index + 1}. ** [${track.metadata.title}](${
-                    track.metadata.url
-                  })`
-              )
+              .map((track, index) => `**${index + 1}. ** [${track.metadata.title}](${track.metadata.url})`)
               .join("\n");
       const remain =
-        subscription.queue.length > 10
-          ? `\n\n... and **${subscription.queue.length - 10}** more songs`
-          : "";
+        subscription.queue.length > 10 ? `\n\n... and **${subscription.queue.length - 10}** more songs` : "";
       const timeString = () => {
         const now = new Date().getTime();
         const estimate = Math.floor((endTime - startTime) / 1000);
         const played = Math.floor((now - startTime) / 1000);
-        return `${played / 60 < 10 ? "0" : ""}${Math.floor(played / 60)}:${
-          played % 60 < 10 ? "0" : ""
-        }${played % 60} / ${estimate / 60 < 10 ? "0" : ""}${Math.floor(
-          estimate / 60
-        )}:${estimate % 60 < 10 ? "0" : ""}${estimate % 60}`;
+        return `${played / 60 < 10 ? "0" : ""}${Math.floor(played / 60)}:${played % 60 < 10 ? "0" : ""}${
+          played % 60
+        } / ${estimate / 60 < 10 ? "0" : ""}${Math.floor(estimate / 60)}:${estimate % 60 < 10 ? "0" : ""}${
+          estimate % 60
+        }`;
       };
       return new InfoEmbed(
         user,

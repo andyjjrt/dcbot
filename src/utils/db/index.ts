@@ -35,9 +35,7 @@ export const announce = new Sequelize("announce", "user", "password", {
 });
 
 export const initDB = () => {
-  return Promise.all(
-    [history, record, announce, setting].map((db) => db.sync())
-  );
+  return Promise.all([history, record, announce, setting].map((db) => db.sync()));
 };
 
 export default history;

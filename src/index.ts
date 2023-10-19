@@ -1,11 +1,5 @@
 // Require the necessary discord.js classes
-import {
-  ActivityType,
-  Events,
-  GatewayIntentBits,
-  Snowflake,
-  TextChannel,
-} from "discord.js";
+import { ActivityType, Events, GatewayIntentBits, Snowflake, TextChannel } from "discord.js";
 import { MusicSubscription } from "./utils/Subscription";
 import chalk from "chalk";
 import * as dotenv from "dotenv";
@@ -56,29 +50,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const commandChannel = interaction.channel;
     if (!(commandChannel instanceof TextChannel)) {
       await interaction.reply({
-        embeds: [
-          new ErrorEmbed(
-            interaction.client.user,
-            "Error",
-            "Please use command in a **Text Channel**"
-          ),
-        ],
+        embeds: [new ErrorEmbed(interaction.client.user, "Error", "Please use command in a **Text Channel**")],
       });
       return;
     }
     if ((BANNED_LIST?.split(",") || []).indexOf(interaction.user.id) >= 0) {
       await interaction.reply({
-        embeds: [
-          new ErrorEmbed(interaction.client.user, "Error", "You're banned"),
-        ],
+        embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're banned")],
       });
       return;
     }
     const command = client.collection.get(interaction.commandName);
     if (!command) {
-      console.error(
-        `No command matching ${interaction.commandName} was found.`
-      );
+      console.error(`No command matching ${interaction.commandName} was found.`);
       return;
     }
     try {
@@ -108,9 +92,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   } else if (interaction.isAutocomplete()) {
     const command = client.collection.get(interaction.commandName);
     if (!command) {
-      console.error(
-        `No command matching ${interaction.commandName} was found.`
-      );
+      console.error(`No command matching ${interaction.commandName} was found.`);
       return;
     }
     try {
@@ -119,16 +101,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
       console.error(error);
     }
   } else if (interaction.isStringSelectMenu()) {
-    if (new Date().getTime() - interaction.message.createdTimestamp > 60000)
-      return;
+    if (new Date().getTime() - interaction.message.createdTimestamp > 60000) return;
     if (interaction.customId === "#SearchSelectMenu") {
       await interaction.deferReply();
-      play(
-        interaction,
-        `https://www.youtube.com/watch?v=${interaction.values[0]}`,
-        false,
-        false
-      );
+      play(interaction, `https://www.youtube.com/watch?v=${interaction.values[0]}`, false, false);
     }
   }
 });
@@ -197,9 +173,7 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
         subscription.leaveTimer = setTimeout(() => {
           if (oldState.channel!.members.size <= 1) {
             subscription.commandChannel.send({
-              embeds: [
-                new InfoEmbed(client.user, ":wave:  Left", "I'm right."),
-              ],
+              embeds: [new InfoEmbed(client.user, ":wave:  Left", "I'm right.")],
             });
             subscription.queueMessage.destroy();
             subscription.voiceConnection.destroy();

@@ -5,18 +5,12 @@ const headers = {
 };
 
 export const getTrackMetaData = async (id: string) => {
-  const response = await fetch(
-    `https://api.spotifydown.com/metadata/track/${id}`,
-    { headers: headers }
-  );
+  const response = await fetch(`https://api.spotifydown.com/metadata/track/${id}`, { headers: headers });
   return await response.json();
 };
 
 export const getPlayListMetaData = async (id: string) => {
-  const response = await fetch(
-    `https://api.spotifydown.com/metadata/playlist/${id}`,
-    { headers: headers }
-  );
+  const response = await fetch(`https://api.spotifydown.com/metadata/playlist/${id}`, { headers: headers });
   return await response.json();
 };
 

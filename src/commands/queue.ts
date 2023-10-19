@@ -4,9 +4,7 @@ import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
 import { subscriptions, client } from "..";
 
 export default {
-  data: new SlashCommandBuilder()
-    .setName("queue")
-    .setDescription("Get current queue"),
+  data: new SlashCommandBuilder().setName("queue").setDescription("Get current queue"),
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);
@@ -15,13 +13,7 @@ export default {
       await subscription.queueMessage.generateQueue(interaction);
     } else {
       await interaction.reply({
-        embeds: [
-          new ErrorEmbed(
-            interaction.client.user,
-            "Error",
-            "Not playing in this server!"
-          ),
-        ],
+        embeds: [new ErrorEmbed(interaction.client.user, "Error", "Not playing in this server!")],
       });
     }
   },

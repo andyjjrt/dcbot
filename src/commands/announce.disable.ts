@@ -1,10 +1,5 @@
 import { InfoEmbed, SuccessEmbed } from "../utils/Embed";
-import {
-  SlashCommandBuilder,
-  CommandInteraction,
-  ChatInputCommandInteraction,
-  Embed,
-} from "discord.js";
+import { SlashCommandBuilder, CommandInteraction, ChatInputCommandInteraction, Embed } from "discord.js";
 import { client } from "../index";
 import { Announce } from "../utils/db/schema";
 
@@ -16,32 +11,15 @@ export default {
       subcommand
         .setName("add")
         .setDescription("Add Announce")
-        .addStringOption((option) =>
-          option
-            .setName("title")
-            .setDescription("Announce title")
-            .setRequired(true)
-        )
-        .addStringOption((option) =>
-          option
-            .setName("url")
-            .setDescription("Announce title")
-            .setRequired(true)
-        )
+        .addStringOption((option) => option.setName("title").setDescription("Announce title").setRequired(true))
+        .addStringOption((option) => option.setName("url").setDescription("Announce title").setRequired(true))
     )
-    .addSubcommand((subcommand) =>
-      subcommand.setName("list").setDescription("List announce")
-    )
+    .addSubcommand((subcommand) => subcommand.setName("list").setDescription("List announce"))
     .addSubcommand((subcommand) =>
       subcommand
         .setName("remove")
         .setDescription("List announce")
-        .addStringOption((option) =>
-          option
-            .setName("title")
-            .setDescription("Announce title")
-            .setRequired(true)
-        )
+        .addStringOption((option) => option.setName("title").setDescription("Announce title").setRequired(true))
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const guildId = interaction.guildId || "";
@@ -56,13 +34,7 @@ export default {
         url: url,
       });
       await interaction.followUp({
-        embeds: [
-          new SuccessEmbed(
-            interaction.client.user,
-            "Success",
-            `**${title}** ${url}`
-          ),
-        ],
+        embeds: [new SuccessEmbed(interaction.client.user, "Success", `**${title}** ${url}`)],
       });
     } else if (subcommand === "list") {
       const list = await Announce.findAll({ where: { guildId: guildId } });
@@ -71,14 +43,7 @@ export default {
           new InfoEmbed(
             interaction.client.user,
             ":information_source:  **Announce List**",
-            `${list
-              .map(
-                (his) =>
-                  `**${his.get("title") as string}** ${
-                    his.get("url") as string
-                  }`
-              )
-              .join("\n")}`
+            `${list.map((his) => `**${his.get("title") as string}** ${his.get("url") as string}`).join("\n")}`
           ),
         ],
       });
@@ -91,9 +56,7 @@ export default {
         },
       });
       await interaction.followUp({
-        embeds: [
-          new SuccessEmbed(interaction.client.user, "Deleted", `${title}`),
-        ],
+        embeds: [new SuccessEmbed(interaction.client.user, "Deleted", `${title}`)],
       });
     }
   },

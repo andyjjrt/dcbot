@@ -1,11 +1,7 @@
 import { EmbedBuilder, Client, User, APIUser, ClientUser } from "discord.js";
 
 export class SuccessEmbed extends EmbedBuilder {
-  constructor(
-    user: ClientUser | User | APIUser,
-    title: string,
-    description: string
-  ) {
+  constructor(user: ClientUser | User | APIUser, title: string, description: string) {
     super();
     this.setColor(0x33ff33)
       .setTitle(`:white_check_mark:  ${title}`)
@@ -33,11 +29,7 @@ export class PlayingEmbed extends EmbedBuilder {
 }
 
 export class ErrorEmbed extends EmbedBuilder {
-  constructor(
-    user: ClientUser | User | APIUser,
-    title: string,
-    description: string
-  ) {
+  constructor(user: ClientUser | User | APIUser, title: string, description: string) {
     super();
     this.setColor(0xff0000)
       .setTitle(`:x:  ${title}`)
@@ -65,11 +57,7 @@ export class CatEmbed extends EmbedBuilder {
 }
 
 export class InfoEmbed extends EmbedBuilder {
-  constructor(
-    user: ClientUser | User | APIUser,
-    title: string,
-    description: string
-  ) {
+  constructor(user: ClientUser | User | APIUser, title: string, description: string) {
     super();
     this.setColor(0x53fafa)
       .setTitle(title)

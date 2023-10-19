@@ -9,11 +9,7 @@ import {
   GuildTextThreadManager,
   Role,
 } from "discord.js";
-import {
-  joinVoiceChannel,
-  entersState,
-  VoiceConnectionStatus,
-} from "@discordjs/voice";
+import { joinVoiceChannel, entersState, VoiceConnectionStatus } from "@discordjs/voice";
 import { Track } from "../utils/Track";
 import { MusicSubscription } from "../utils/Subscription";
 import { subscriptions, client } from "../index";
@@ -25,18 +21,10 @@ export default {
     .setName("play")
     .setDescription("Play song(s) from Youtube or Spotify")
     .addStringOption((option) =>
-      option
-        .setName("url")
-        .setDescription("Youtube link or Spotify link")
-        .setRequired(true)
-        .setAutocomplete(true)
+      option.setName("url").setDescription("Youtube link or Spotify link").setRequired(true).setAutocomplete(true)
     )
-    .addBooleanOption((option) =>
-      option.setName("top").setDescription("Force play top")
-    )
-    .addBooleanOption((option) =>
-      option.setName("shuffle").setDescription("Shuffle list before queue")
-    ),
+    .addBooleanOption((option) => option.setName("top").setDescription("Force play top"))
+    .addBooleanOption((option) => option.setName("shuffle").setDescription("Shuffle list before queue")),
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
     const url = interaction.options.get("url", true).value as string;
@@ -58,9 +46,7 @@ export default {
       time: new Date(his.get("time") as string).getTime(),
       list: his.get("list") as boolean,
     }));
-    const filtered = choices.filter((choice) =>
-      choice.title.startsWith(focusedValue)
-    );
+    const filtered = choices.filter((choice) => choice.title.startsWith(focusedValue));
     await interaction.respond(
       filtered.map((choice) => ({
         name: `${choice.list ? "🎶" : "🎵"} ${choice.title}`,
@@ -89,21 +75,12 @@ export const play = async (
   const commandChannel = interaction.channel;
   if (!(commandChannel instanceof TextChannel)) {
     await interaction.followUp({
-      embeds: [
-        new ErrorEmbed(
-          interaction.client.user,
-          "Error",
-          "Please use this command in a **Text Channel**"
-        ),
-      ],
+      embeds: [new ErrorEmbed(interaction.client.user, "Error", "Please use this command in a **Text Channel**")],
     });
     return;
   }
   if (!subscription) {
-    if (
-      interaction.member instanceof GuildMember &&
-      interaction.member.voice.channel
-    ) {
+    if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
       const channel = interaction.member.voice.channel;
       subscription = new MusicSubscription(
         joinVoiceChannel({
@@ -121,24 +98,14 @@ export const play = async (
   // If there is no subscription, tell the user they need to join a channel.
   if (!subscription) {
     await interaction.followUp({
-      embeds: [
-        new ErrorEmbed(
-          interaction.client.user,
-          "Error",
-          "Join a voice channel and then try that again!"
-        ),
-      ],
+      embeds: [new ErrorEmbed(interaction.client.user, "Error", "Join a voice channel and then try that again!")],
     });
     return;
   }
 
   // Make sure the connection is ready before processing the user's request
   try {
-    await entersState(
-      subscription.voiceConnection,
-      VoiceConnectionStatus.Ready,
-      20e3
-    );
+    await entersState(subscription.voiceConnection, VoiceConnectionStatus.Ready, 20e3);
   } catch (error) {
     console.error(error);
     await interaction.followUp({
@@ -157,9 +124,7 @@ export const play = async (
     // Attempt to create a Track from the user's video URL
     await interaction
       .editReply({
-        embeds: [
-          new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", ""),
-        ],
+        embeds: [new InfoEmbed(interaction.client.user, ":inbox_tray: Processing", "")],
       })
       .catch(console.error);
     const list = await Track.from(
@@ -167,21 +132,13 @@ export const play = async (
       {
         onStart(url, title, thumbnail) {
           subscription!.logChannel?.send({
-            embeds: [
-              new PlayingEmbed(
-                interaction.member!.user,
-                title,
-                url
-              ).setThumbnail(thumbnail),
-            ],
+            embeds: [new PlayingEmbed(interaction.member!.user, title, url).setThumbnail(thumbnail)],
           });
         },
         onError(error) {
           console.error(error);
           subscription!.logChannel?.send({
-            embeds: [
-              new ErrorEmbed(interaction.client.user, "Error", error.message),
-            ],
+            embeds: [new ErrorEmbed(interaction.client.user, "Error", error.message)],
           });
         },
       },
@@ -196,13 +153,7 @@ export const play = async (
         if (subscription) subscription.enqueue(track);
       });
     }
-    if (
-      list.title === "" ||
-      list.url === "" ||
-      list.thumbnail === "" ||
-      list.tracks.length == 0
-    )
-      throw new Error();
+    if (list.title === "" || list.url === "" || list.thumbnail === "" || list.tracks.length == 0) throw new Error();
     subscription.logChannel?.members.add(
       interaction.member!.user.id,
       `${interaction.member!.user.id} queued ${list.title}`
@@ -216,22 +167,16 @@ export const play = async (
     });
     await interaction.editReply({
       embeds: [
-        new SuccessEmbed(
-          interaction.member!.user,
-          "Success",
-          `Enqueued **[${list.title}](${list.url})**`
-        ).setThumbnail(list.thumbnail),
+        new SuccessEmbed(interaction.member!.user, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(
+          list.thumbnail
+        ),
       ],
     });
   } catch (error) {
     console.error(error);
     await interaction.editReply({
       embeds: [
-        new ErrorEmbed(
-          interaction.client.user,
-          "Error",
-          "Failed to play track, please try again later!\n\n" + error
-        ),
+        new ErrorEmbed(interaction.client.user, "Error", "Failed to play track, please try again later!\n\n" + error),
       ],
     });
   }

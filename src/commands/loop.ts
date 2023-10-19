@@ -1,8 +1,4 @@
-import {
-  SlashCommandBuilder,
-  CommandInteraction,
-  GuildMember,
-} from "discord.js";
+import { SlashCommandBuilder, CommandInteraction, GuildMember } from "discord.js";
 import { subscriptions } from "..";
 import { ErrorEmbed, SuccessEmbed } from "../utils/Embed";
 
@@ -26,22 +22,12 @@ export default {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);
     if (subscription) {
-      if (
-        interaction.member instanceof GuildMember &&
-        interaction.member.voice.channel
-      ) {
-        if (
-          subscription.voiceConnection.joinConfig.channelId ===
-          interaction.member.voice.channelId
-        ) {
+      if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
+        if (subscription.voiceConnection.joinConfig.channelId === interaction.member.voice.channelId) {
           subscription.loop = status as "off" | "one" | "queue";
           await interaction.reply({
             embeds: [
-              new SuccessEmbed(
-                interaction.client.user,
-                "Current Status",
-                " "
-              ).addFields({
+              new SuccessEmbed(interaction.client.user, "Current Status", " ").addFields({
                 name: "Loop",
                 value: subscription.loop,
                 inline: true,
@@ -51,34 +37,18 @@ export default {
         } else {
           await interaction.reply({
             embeds: [
-              new ErrorEmbed(
-                interaction.client.user,
-                "Error",
-                "You're not in the same voice channel with bot!"
-              ),
+              new ErrorEmbed(interaction.client.user, "Error", "You're not in the same voice channel with bot!"),
             ],
           });
         }
       } else {
         await interaction.reply({
-          embeds: [
-            new ErrorEmbed(
-              interaction.client.user,
-              "Error",
-              "You're not in a voice channel!"
-            ),
-          ],
+          embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're not in a voice channel!")],
         });
       }
     } else {
       await interaction.reply({
-        embeds: [
-          new ErrorEmbed(
-            interaction.client.user,
-            "Error",
-            "Not playing in this server!"
-          ),
-        ],
+        embeds: [new ErrorEmbed(interaction.client.user, "Error", "Not playing in this server!")],
       });
     }
   },

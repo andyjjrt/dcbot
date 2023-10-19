@@ -10,9 +10,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("howhow")
     .setDescription("Use howhow to say")
-    .addStringOption((option) =>
-      option.setName("sentence").setDescription("Sentence").setRequired(true)
-    ),
+    .addStringOption((option) => option.setName("sentence").setDescription("Sentence").setRequired(true)),
   async execute(interaction: CommandInteraction) {
     await interaction.deferReply();
     const sentence = interaction.options.get("sentence", true).value as string;
@@ -36,10 +34,7 @@ export default {
           ffmpegProcess.input(`${HOWHOW_DIR}/${value}.mp4`);
         }
       });
-      ffmpegProcess.mergeToFile(
-        `${HOWHOW_DIR}/result/${sentence}.mp3`,
-        `${HOWHOW_DIR}`
-      );
+      ffmpegProcess.mergeToFile(`${HOWHOW_DIR}/result/${sentence}.mp3`, `${HOWHOW_DIR}`);
     });
     let subscription = subscriptions.get(interaction.guildId!);
 
@@ -51,13 +46,7 @@ export default {
       })
       .catch(async (err: Error) => {
         return interaction.followUp({
-          embeds: [
-            new ErrorEmbed(
-              interaction.client.user,
-              "Error",
-              "Failed to parse, please check your input"
-            ),
-          ],
+          embeds: [new ErrorEmbed(interaction.client.user, "Error", "Failed to parse, please check your input")],
         });
       });
   },

@@ -1,9 +1,5 @@
 import { ErrorEmbed, InfoEmbed, SuccessEmbed } from "./../utils/Embed";
-import {
-  SlashCommandBuilder,
-  PermissionsBitField,
-  ChatInputCommandInteraction,
-} from "discord.js";
+import { SlashCommandBuilder, PermissionsBitField, ChatInputCommandInteraction } from "discord.js";
 import { client } from "../index";
 import { Record, Setting } from "../utils/db/schema";
 import { exec } from "child_process";
@@ -14,17 +10,7 @@ function formatBytes(bytes: number, decimals = 2) {
 
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = [
-    "Bytes",
-    "KiB",
-    "MiB",
-    "GiB",
-    "TiB",
-    "PiB",
-    "EiB",
-    "ZiB",
-    "YiB",
-  ];
+  const sizes = ["Bytes", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
@@ -39,34 +25,20 @@ export default {
       command
         .setName("ytkey")
         .setDescription("Set Youtube API key")
-        .addStringOption((option) =>
-          option.setName("key").setDescription("Key").setRequired(true)
-        )
+        .addStringOption((option) => option.setName("key").setDescription("Key").setRequired(true))
     )
-    .addSubcommand((command) =>
-      command.setName("refresh").setDescription("Refresh commands")
-    )
-    .addSubcommand((command) =>
-      command.setName("info").setDescription("Get info")
-    )
-    .addSubcommand((command) =>
-      command.setName("records").setDescription("Get recent records")
-    ),
+    .addSubcommand((command) => command.setName("refresh").setDescription("Refresh commands"))
+    .addSubcommand((command) => command.setName("info").setDescription("Get info"))
+    .addSubcommand((command) => command.setName("records").setDescription("Get recent records")),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand(true);
     await interaction.deferReply({ ephemeral: true });
-    const isAdmin = (
-      interaction.member!.permissions as PermissionsBitField
-    ).has(PermissionsBitField.Flags.Administrator);
+    const isAdmin = (interaction.member!.permissions as PermissionsBitField).has(
+      PermissionsBitField.Flags.Administrator
+    );
     if (!isAdmin) {
       await interaction.followUp({
-        embeds: [
-          new ErrorEmbed(
-            interaction.client.user,
-            "Error",
-            "You don't have permission to do so."
-          ),
-        ],
+        embeds: [new ErrorEmbed(interaction.client.user, "Error", "You don't have permission to do so.")],
         ephemeral: true,
       });
       return;
@@ -79,25 +51,13 @@ export default {
         ytKey: key,
       });
       await interaction.followUp({
-        embeds: [
-          new SuccessEmbed(
-            interaction.client.user,
-            "Success",
-            `ytKet changed to || \`${key}\` ||`
-          ),
-        ],
+        embeds: [new SuccessEmbed(interaction.client.user, "Success", `ytKet changed to || \`${key}\` ||`)],
         ephemeral: true,
       });
     } else if (subcommand === "refresh") {
       const commands = await client.refreshCommands();
       await interaction.followUp({
-        embeds: [
-          new SuccessEmbed(
-            interaction.client.user,
-            "Success",
-            `${commands} commands refreshed`
-          ),
-        ],
+        embeds: [new SuccessEmbed(interaction.client.user, "Success", `${commands} commands refreshed`)],
         ephemeral: true,
       });
     } else if (subcommand === "info") {
@@ -114,20 +74,16 @@ export default {
           new InfoEmbed(interaction.client.user, ":man_shrugging:  Bump!", "")
             .addFields({
               name: "Buffer",
-              value: `Local music buffer folder size is ${
-                (res as string).split("\t")[0]
-              }`,
+              value: `Local music buffer folder size is ${(res as string).split("\t")[0]}`,
             })
             .addFields({
               name: "Memory",
-              value: `Heap: ${formatBytes(
-                process.memoryUsage().heapUsed
-              )}/${formatBytes(process.memoryUsage().heapTotal)}
+              value: `Heap: ${formatBytes(process.memoryUsage().heapUsed)}/${formatBytes(
+                process.memoryUsage().heapTotal
+              )}
                 External: ${formatBytes(process.memoryUsage().external)}
                 Resident Set Size: ${formatBytes(process.memoryUsage().rss)}
-                Array Buffers: ${formatBytes(
-                  process.memoryUsage().arrayBuffers
-                )}
+                Array Buffers: ${formatBytes(process.memoryUsage().arrayBuffers)}
                 `,
             })
             .addFields({
@@ -146,19 +102,10 @@ export default {
         order: [["time", "DESC"]],
       });
       const records = data.map(
-        (record, i) =>
-          `**${i + 1}**.  [${record.get("title") as string}](${
-            record.get("url") as string
-          })`
+        (record, i) => `**${i + 1}**.  [${record.get("title") as string}](${record.get("url") as string})`
       );
       await interaction.followUp({
-        embeds: [
-          new InfoEmbed(
-            interaction.client.user,
-            ":page_facing_up:  Recent Records",
-            `${records.join("\n")}`
-          ),
-        ],
+        embeds: [new InfoEmbed(interaction.client.user, ":page_facing_up:  Recent Records", `${records.join("\n")}`)],
         ephemeral: true,
       });
     }

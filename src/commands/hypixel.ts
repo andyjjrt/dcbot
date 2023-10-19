@@ -2,9 +2,7 @@ import { SlashCommandBuilder, CommandInteraction, time } from "discord.js";
 import { SuccessEmbed } from "../utils/Embed";
 
 export default {
-  data: new SlashCommandBuilder()
-    .setName("hypixel")
-    .setDescription("Which gives fun fact"),
+  data: new SlashCommandBuilder().setName("hypixel").setDescription("Which gives fun fact"),
   async execute(interaction: CommandInteraction) {
     await interaction.reply({
       embeds: [
@@ -13,7 +11,10 @@ export default {
           "Hypixel is a good game",
           `
           andyjjrt: ${time(new Date("2024-09-08T01:29:38.000"), "R")}(${time(new Date("2024-09-08T01:29:38.000"), "F")})
-          murasakishionnnn: ${time(new Date("2024-08-12T14:59:45.000"), "R")}(${time(new Date("2024-08-12T14:59:45.000"), "F")})
+          murasakishionnnn: ${time(new Date("2024-08-12T14:59:45.000"), "R")}(${time(
+            new Date("2024-08-12T14:59:45.000"),
+            "F"
+          )})
           `
         ),
       ],
