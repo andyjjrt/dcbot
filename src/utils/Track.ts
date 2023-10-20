@@ -44,6 +44,8 @@ export interface TrackData {
   metadata: {
     url: string;
     title: string;
+    channel?: string;
+    channelUrl?: string;
     thumbnail: string;
   };
   url: string;
@@ -72,6 +74,8 @@ export class Track implements TrackData {
     url: string;
     title: string;
     thumbnail: string;
+    channel?: string;
+    channelUrl?: string;
   } = { url: "", title: "", thumbnail: "" };
   public readonly filePath: string;
   public readonly user: User | APIUser;
@@ -93,6 +97,8 @@ export class Track implements TrackData {
       url: string;
       title: string;
       thumbnail: string;
+      channel?: string;
+      channelUrl?: string;
     };
     filePath: string;
     user: User | APIUser;
@@ -187,7 +193,7 @@ export class Track implements TrackData {
     }
 
     if (musicUrl === undefined) {
-      throw new Error("Invalid music url. Please check your input.")
+      throw new Error("Invalid music url. Please check your input.");
     }
 
     // Get metadata
@@ -218,6 +224,8 @@ export class Track implements TrackData {
           title: track.title,
           thumbnail: track.thumbnails[0].url,
           url: track.original_url,
+          channel: track.channel,
+          channelUrl: track.channel_url
         },
         url: url,
         filePath: `${MUSIC_DIR}/${track.id}.webm`,
