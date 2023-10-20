@@ -178,7 +178,7 @@ export const play = async (
     console.error(error);
     await interaction.editReply({
       embeds: [
-        new ErrorEmbed(interaction.client.user, "Error", "Failed to play track, please try again later!\n\n" + error),
+        new ErrorEmbed(interaction.client.user, "Error", "Failed to play track, please try again later!\n" + error),
       ],
     });
   }

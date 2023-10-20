@@ -164,16 +164,15 @@ export class Track implements TrackData {
     });
 
     const urlObj = new URL(url);
-    let musicUrl = "";
+    const path = urlObj.pathname.slice(1).split("/");
+    let musicUrl: undefined | string = undefined;
     if (urlObj.hostname === "open.spotify.com") {
-      const path = urlObj.pathname.split("/");
       if (path.includes("track")) {
         return this.spotifyTrack(url, interaction.member!.user, defaultHandler);
       } else if (path.includes("playlist")) {
         return this.spotifyList(url, interaction.member!.user, defaultHandler);
       }
     } else if (urlObj.hostname === "www.youtube.com" || urlObj.hostname === "youtube.com") {
-      const path = urlObj.pathname.split("/");
       if (path.includes("playlist")) {
         const id = urlObj.searchParams.get("list");
         musicUrl = `https://youtube.com/playlist?list=${id}`;
@@ -181,6 +180,14 @@ export class Track implements TrackData {
         const id = urlObj.searchParams.get("v");
         musicUrl = `https://www.youtube.com/watch?v=${id}`;
       }
+    } else if (urlObj.hostname === "youtu.be") {
+      if (path.length === 1) {
+        musicUrl = `https://www.youtube.com/watch?v=${path[0]}`;
+      }
+    }
+
+    if (musicUrl === undefined) {
+      throw new Error("Invalid music url. Please check your input.")
     }
 
     // Get metadata
