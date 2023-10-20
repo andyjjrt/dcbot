@@ -204,3 +204,5 @@ server.on("clientError", (err, socket) => {
 
 server.listen(PORT || 3000);
 log("SETUP", "Server Starting...");
+
+export default client;
