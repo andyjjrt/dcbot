@@ -223,7 +223,7 @@ export class Track implements TrackData {
         metadata: {
           title: track.title,
           thumbnail: track.thumbnails[0].url,
-          url: track.original_url,
+          url: track.original_url || track.url,
           channel: track.channel,
           channelUrl: track.channel_url
         },
