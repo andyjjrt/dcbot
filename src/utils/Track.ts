@@ -178,7 +178,7 @@ export class Track implements TrackData {
       } else if (path.includes("playlist") || path.includes("album")) {
         return this.spotifyList(url, interaction.member!.user, defaultHandler);
       }
-    } else if (urlObj.hostname === "www.youtube.com" || urlObj.hostname === "youtube.com") {
+    } else if (urlObj.hostname === "www.youtube.com" || urlObj.hostname === "youtube.com" || urlObj.hostname === "music.youtube.com") {
       if (path.includes("playlist")) {
         const id = urlObj.searchParams.get("list");
         musicUrl = `https://youtube.com/playlist?list=${id}`;
