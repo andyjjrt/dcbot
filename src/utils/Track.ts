@@ -175,7 +175,7 @@ export class Track implements TrackData {
     if (urlObj.hostname === "open.spotify.com") {
       if (path.includes("track")) {
         return this.spotifyTrack(url, interaction.member!.user, defaultHandler);
-      } else if (path.includes("playlist")) {
+      } else if (path.includes("playlist") || path.includes("album")) {
         return this.spotifyList(url, interaction.member!.user, defaultHandler);
       }
     } else if (urlObj.hostname === "www.youtube.com" || urlObj.hostname === "youtube.com") {
@@ -285,10 +285,9 @@ export class Track implements TrackData {
     }
   ) {
     const urlObj = new URL(url);
-    const path = urlObj.pathname.split("/");
-    const id = path.slice(-1)[0];
-    const trackIdList = await getPlayListUrl(id);
-    const metaData = await getPlayListMetaData(id);
+    const path = urlObj.pathname
+    const trackIdList = await getPlayListUrl(path);
+    const metaData = await getPlayListMetaData(path);
 
     const tracks = await new Promise((resolve, reject) => {
       resolve(
