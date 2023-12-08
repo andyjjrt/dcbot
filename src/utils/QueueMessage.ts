@@ -7,6 +7,7 @@ class QueueMessage {
   public readonly subscription: MusicSubscription;
   private interaction: ChatInputCommandInteraction | null = null;
   public timer: NodeJS.Timeout | null = null;
+  private interact: Message | null = null;
   private url: string = "";
   constructor(subscription: MusicSubscription) {
     this.subscription = subscription;
@@ -14,9 +15,9 @@ class QueueMessage {
 
   public async destroy() {
     if (this.timer) clearTimeout(this.timer);
-    if (this.interaction) {
-      await this.interaction!.editReply({
-        embeds: [new ErrorEmbed(this.interaction!.client.user, "Error", "Nothing is currently playing!")],
+    if (this.interact) {
+      await this.interact!.edit({
+        embeds: [new ErrorEmbed(this.interact!.client.user, "Error", "Nothing is currently playing!")],
       });
     }
   }
@@ -25,35 +26,29 @@ class QueueMessage {
     const interact = await interaction.followUp({
       embeds: [this.generateEmbed(this.subscription, interaction.client.user)],
     });
-    this.url = interact.url;
     if (this.timer) clearTimeout(this.timer);
-    if (this.interaction) {
-      await this.interaction!.editReply({
-        embeds: [new InfoEmbed(this.interaction!.client.user, ":arrow_forward:  Queue", `${this.url}`)],
+    if(this.interact) {
+      this.interact.edit({
+        embeds: [new InfoEmbed(this.interact.client.user, ":arrow_forward: New Queue Generated", `${interact.url}`)],
       });
     }
+    this.interact = interact;
 
     this.timer = setInterval(async () => {
-      if (new Date().getTime() - this.interaction!.createdTimestamp > 3600000) {
-        if (this.timer) clearTimeout(this.timer);
-        await this.interaction!.editReply({
-          embeds: [new InfoEmbed(this.interaction!.client.user, ":arrow_forward:  Queue", `${this.url}`)],
-        });
-      } else if (
+      if (
         (this.subscription.audioPlayer.state.status === AudioPlayerStatus.Idle || !this.subscription.currentPlaying) &&
         this.subscription.queue.length === 0
       ) {
         if (this.timer) clearTimeout(this.timer);
-        await this.interaction!.editReply({
-          embeds: [new ErrorEmbed(this.interaction!.client.user, "Error", "Nothing is currently playing!")],
+        this.interact!.edit({
+          embeds: [new ErrorEmbed(this.interact!.client.user, "Error", "Nothing is currently playing!")],
         });
       } else {
-        await this.interaction!.editReply({
-          embeds: [this.generateEmbed(this.subscription, interaction.client.user)],
+        this.interact!.edit({
+          embeds: [this.generateEmbed(this.subscription, this.interact!.client.user)],
         });
       }
     }, 1000);
-    this.interaction = interaction;
   }
 
   private generateEmbed(subscription: MusicSubscription, user: ClientUser | User | APIUser) {
