@@ -19,7 +19,6 @@ export const getTrackUrl = async (id: string) => {
     headers: headers,
   });
   const res = await response.json();
-  console.log(id, res);
   const { id: ytId } = res;
   return ytId;
 };
