@@ -1,14 +1,12 @@
-import { ErrorEmbed, InfoEmbed } from "./Embed";
+import { ErrorEmbed, InfoEmbed, SuccessEmbed } from "./Embed";
 import { APIUser, ChatInputCommandInteraction, ClientUser, Message, User } from "discord.js";
 import { MusicSubscription } from "./Subscription";
 import { AudioPlayerStatus } from "@discordjs/voice";
 
 class QueueMessage {
   public readonly subscription: MusicSubscription;
-  private interaction: ChatInputCommandInteraction | null = null;
   public timer: NodeJS.Timeout | null = null;
   private interact: Message | null = null;
-  private url: string = "";
   constructor(subscription: MusicSubscription) {
     this.subscription = subscription;
   }
@@ -17,25 +15,43 @@ class QueueMessage {
     if (this.timer) clearTimeout(this.timer);
     if (this.interact) {
       await this.interact!.edit({
-        embeds: [new ErrorEmbed(this.interact!.client.user, "Error", "Nothing is currently playing!")],
+        embeds: [new InfoEmbed(this.interact!.client.user, ":arrow_forward: Queue", "Queue done!")],
       });
     }
   }
 
   public async generateQueue(interaction: ChatInputCommandInteraction) {
+    if (
+      (this.subscription.audioPlayer.state.status === AudioPlayerStatus.Idle || !this.subscription.currentPlaying) &&
+      this.subscription.queue.length === 0
+    ) {
+      await interaction.followUp({
+        embeds: [new InfoEmbed(this.interact!.client.user, ":arrow_forward: Queue", "Queue done!")],
+      });
+      return;
+    }
     const interact = await interaction.followUp({
       embeds: [this.generateEmbed(this.subscription, interaction.client.user)],
     });
     if (this.timer) clearTimeout(this.timer);
-    if(this.interact) {
+    if (this.interact) {
       this.interact.edit({
         embeds: [new InfoEmbed(this.interact.client.user, ":arrow_forward: New Queue Generated", `${interact.url}`)],
       });
     }
     this.interact = interact;
+    console.log(new Date(this.interact!.createdTimestamp).toLocaleString());
 
     this.timer = setInterval(async () => {
-      if (
+      if (this.interact!.createdTimestamp + ((59 * 60 + 30) * 1000) < Date.now()) {
+        const message = await this.interact!.reply({
+          embeds: [this.generateEmbed(this.subscription, interaction.client.user)],
+        });
+        await this.interact!.edit({
+          embeds: [new InfoEmbed(this.interact!.client.user, ":arrow_forward: New Queue Generated", `${message.url}`)],
+        })
+        this.interact = message;
+      } else if (
         (this.subscription.audioPlayer.state.status === AudioPlayerStatus.Idle || !this.subscription.currentPlaying) &&
         this.subscription.queue.length === 0
       ) {
