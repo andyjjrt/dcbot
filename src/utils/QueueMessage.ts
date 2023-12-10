@@ -26,7 +26,7 @@ class QueueMessage {
       this.subscription.queue.length === 0
     ) {
       await interaction.followUp({
-        embeds: [new InfoEmbed(this.interact!.client.user, ":arrow_forward: Queue", "Queue done!")],
+        embeds: [new ErrorEmbed(this.interact!.client.user, "Error", "Nothing is currently playing!")],
       });
       return;
     }
@@ -43,7 +43,7 @@ class QueueMessage {
     console.log(new Date(this.interact!.createdTimestamp).toLocaleString());
 
     this.timer = setInterval(async () => {
-      if (this.interact!.createdTimestamp + ((59 * 60 + 30) * 1000) < Date.now()) {
+      if (this.interact!.createdTimestamp + ((30 * 60) * 1000) < Date.now()) {
         const message = await this.interact!.reply({
           embeds: [this.generateEmbed(this.subscription, interaction.client.user)],
         });
