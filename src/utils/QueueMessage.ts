@@ -7,6 +7,7 @@ class QueueMessage {
   public readonly subscription: MusicSubscription;
   public timer: NodeJS.Timeout | null = null;
   private interact: Message | null = null;
+  private lock: boolean = false;
   constructor(subscription: MusicSubscription) {
     this.subscription = subscription;
   }
@@ -40,17 +41,19 @@ class QueueMessage {
       });
     }
     this.interact = interact;
-    console.log(new Date(this.interact!.createdTimestamp).toLocaleString());
 
     this.timer = setInterval(async () => {
-      if (this.interact!.createdTimestamp + ((30 * 60) * 1000) < Date.now()) {
+      if (this.lock) return;
+      if (this.interact!.createdTimestamp + 15 * 60 * 1000 < Date.now()) {
+        this.lock = true;
         const message = await this.interact!.reply({
           embeds: [this.generateEmbed(this.subscription, interaction.client.user)],
         });
         await this.interact!.edit({
           embeds: [new InfoEmbed(this.interact!.client.user, ":arrow_forward: New Queue Generated", `${message.url}`)],
-        })
+        });
         this.interact = message;
+        this.lock = false;
       } else if (
         (this.subscription.audioPlayer.state.status === AudioPlayerStatus.Idle || !this.subscription.currentPlaying) &&
         this.subscription.queue.length === 0
