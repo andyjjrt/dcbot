@@ -1,21 +1,21 @@
-// Require the necessary discord.js classes
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import { ActivityType, Events, GatewayIntentBits, Snowflake, TextChannel } from "discord.js";
 import { MusicSubscription } from "./utils/Subscription";
-import chalk from "chalk";
-import * as dotenv from "dotenv";
 import http from "node:http";
 import fs from "node:fs";
-dotenv.config();
-const { TOKEN, CLIENT_ID, BANNED_LIST, MUSIC_DIR, PORT } = process.env;
+import path from "path";
 
 import Client from "./utils/Client";
 import { play } from "./commands/play";
 import { initDB } from "./utils/db";
 import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
-import path from "path";
-import { log } from "./utils/log";
+import { logger } from "./utils/log";
 
-log("SETUP", "Starting...");
+const { TOKEN, CLIENT_ID, BANNED_LIST, MUSIC_DIR, PORT } = process.env;
+
+logger.info("starting...");
 
 // Create a new client instance
 export const client = new Client(
@@ -37,12 +37,12 @@ export const client = new Client(
 export const subscriptions = new Map<Snowflake, MusicSubscription>();
 
 client.once(Events.ClientReady, (c) => {
-  log("SETUP", "Logged in as " + chalk.green(c.user.tag));
+  logger.info(`Logged in as ${c.user.tag}`);
   c.user.setPresence({
     activities: [{ name: "/play", type: ActivityType.Listening }],
     status: "online",
   });
-  initDB().then((dbs) => log("SETUP", `${dbs.length} db synced`));
+  initDB().then((dbs) => logger.info(`${dbs.length} db synced`));
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -55,21 +55,22 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
     const command = client.collection.get(interaction.commandName);
     if (!command) {
-      console.error(`No command matching ${interaction.commandName} was found.`);
+      logger.error(`No command matching ${interaction.commandName} was found.`);
       return;
     }
     try {
-      log(
-        "COMMAND",
-        chalk.green(interaction.member!.user.username) +
-          " used " +
-          chalk.yellow(interaction.commandName) +
-          " in " +
-          chalk.magenta(interaction.guild!.name)
-      );
       await command.execute(interaction);
+      logger.info(
+        {
+          type: "command",
+          guild: interaction.guild!.name,
+          channel: (interaction.channel as TextChannel)!.name,
+          user: interaction.member!.user.username,
+        },
+        `/${interaction.commandName}`
+      );
     } catch (error) {
-      console.error(error);
+      logger.error(error, "Unknown error");
       if (interaction.replied || interaction.deferred) {
         await interaction.followUp({
           content: "There was an error while executing this command!",
@@ -85,38 +86,41 @@ client.on(Events.InteractionCreate, async (interaction) => {
   } else if (interaction.isAutocomplete()) {
     const command = client.collection.get(interaction.commandName);
     if (!command) {
-      console.error(`No command matching ${interaction.commandName} was found.`);
+      logger.error(`No command matching ${interaction.commandName} was found.`);
       return;
     }
     try {
       await command.autocomplete(interaction);
     } catch (error) {
-      console.error(error);
+      logger.error(error, "Unknown error");
     }
   }
 });
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.globalName && message.content.length > 0) {
-    log("LOG", chalk.green(message.author.globalName + ": ") + message.content);
+    logger.info(
+      {
+        type: "command",
+        guild: message.guild!.name,
+        channel: (message.channel as TextChannel).name,
+        user: message.author.username,
+      },
+      message.content
+    );
   }
 });
 
 client.on(Events.VoiceStateUpdate, (oldState, newState) => {
-  // if (oldState.channelId === newState.channelId) {
-  //   console.log('a user has not moved!')
-  // }
-  // if (oldState.channelId != null && newState.channelId != null && newState.channelId != oldState.channelId) {
-  //   console.log('a user switched channels')
-  // }
   if (oldState.channelId === null) {
-    log(
-      "USER",
-      chalk.green(newState.member!.user.username) +
-        " joined " +
-        chalk.yellow(newState.channel!.name) +
-        " in " +
-        chalk.magenta(newState.guild!.name)
+    logger.info(
+      {
+        type: "join voice",
+        guild: newState.guild!.name,
+        channel: newState.channel!.name,
+        user: newState.member!.user.username,
+      },
+      `${newState.member!.user.username} joined ${newState.channel!.name} in ${newState.guild!.name}`
     );
     const guildId = oldState.guild.id;
     const subscription = subscriptions.get(guildId);
@@ -136,13 +140,14 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
     }
   }
   if (newState.channelId === null) {
-    log(
-      "USER",
-      chalk.green(oldState.member!.user.username) +
-        " left " +
-        chalk.yellow(oldState.channel!.name) +
-        " in " +
-        chalk.magenta(oldState.guild!.name)
+    logger.info(
+      {
+        type: "leave voice",
+        guild: oldState.guild!.name,
+        channel: oldState.channel!.name,
+        user: oldState.member!.user.username,
+      },
+      `${oldState.member!.user.username} left ${oldState.channel!.name} in ${oldState.guild!.name}`
     );
     const guildId = oldState.guild.id;
     const subscription = subscriptions.get(guildId);
@@ -203,6 +208,6 @@ server.on("clientError", (err, socket) => {
 });
 
 server.listen(PORT || 3000);
-log("SETUP", "Server Starting...");
+logger.info("Server Starting...");
 
 export default client;

@@ -6,7 +6,7 @@
   "exports": "./dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon",
+    "dev": "nodemon | pino-pretty",
     "start": "node dist/index.js",
     "format": "prettier --write .",
     "docs:dev": "vitepress dev docs",
@@ -27,6 +27,9 @@
     "get-video-duration": "^4.1.0",
     "libsodium-wrappers": "^0.7.13",
     "node-fetch": "^2.7.0",
+    "pino": "^8.17.1",
+    "pino-elasticsearch": "^8.0.0",
+    "pino-pretty": "^10.3.0",
     "pinyin-pro": "^3.18.4",
     "seedrandom": "^3.0.5",
     "sequelize": "^6.35.1",

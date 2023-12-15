@@ -15,6 +15,7 @@ import { MusicSubscription } from "../utils/Subscription";
 import { subscriptions, client } from "../index";
 import { ErrorEmbed } from "../utils/Embed";
 import { History } from "../utils/db/schema";
+import { logger } from "../utils/log";
 
 export default {
   data: new SlashCommandBuilder()
@@ -97,7 +98,7 @@ export const play = async (
         }),
         commandChannel
       );
-      subscription.voiceConnection.on("error", console.error);
+      subscription.voiceConnection.on("error", (error) => logger.error(error, "Voice connection error"));
       subscriptions.set(interaction.guildId || "", subscription);
     }
   }
@@ -114,7 +115,7 @@ export const play = async (
   try {
     await entersState(subscription.voiceConnection, VoiceConnectionStatus.Ready, 20e3);
   } catch (error) {
-    console.error(error);
+    logger.error(error, "Failed to join voice channel");
     await interaction.followUp({
       embeds: [
         new ErrorEmbed(
@@ -138,7 +139,7 @@ export const play = async (
           });
         },
         onError(error) {
-          console.error(error);
+          logger.error(error, "Unknown error");
           subscription!.logChannel?.send({
             embeds: [new ErrorEmbed(interaction.client.user, "Error", error.message)],
           });
@@ -175,7 +176,7 @@ export const play = async (
       ],
     });
   } catch (error) {
-    console.error(error);
+    logger.error(error, "Failed to play track");
     await interaction.editReply({
       embeds: [
         new ErrorEmbed(interaction.client.user, "Error", "Failed to play track, please try again later!\n" + error),

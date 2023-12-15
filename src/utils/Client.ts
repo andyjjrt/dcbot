@@ -1,6 +1,7 @@
 import { Client, Collection, ClientOptions, REST, Routes } from "discord.js";
 import path from "path";
 import { readdirSync } from "fs";
+import { logger } from "./log";
 
 export default class MyClient extends Client<true> {
   collection: Collection<string, any>;
@@ -28,7 +29,7 @@ export default class MyClient extends Client<true> {
       })) as any;
       return data.length;
     } catch (error) {
-      console.error(error);
+      logger.error(error, "Unknown error");
       return -1;
     }
   }

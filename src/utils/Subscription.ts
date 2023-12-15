@@ -41,12 +41,14 @@ import {
   VoiceConnectionState,
   AudioPlayerState,
 } from "@discordjs/voice";
-import type { Track } from "./Track";
+import { TextChannel, ThreadChannel } from "discord.js";
 import { promisify } from "node:util";
+
+import type { Track } from "./Track";
 import { subscriptions, client } from "..";
-import { ActivityType, Client, MessageCollector, TextChannel, ThreadChannel } from "discord.js";
 import { Record } from "./db/schema";
 import QueueMessage from "./QueueMessage";
+import { logger } from "./log";
 
 const wait = promisify(setTimeout);
 
@@ -143,7 +145,7 @@ export class MusicSubscription {
         this.logChannel = channel;
       })
       .catch((error) => {
-        console.error(error);
+        logger.error(error, "Unknown error");
       });
   }
 
