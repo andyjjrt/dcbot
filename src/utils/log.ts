@@ -1,16 +1,14 @@
 import pino from "pino";
 import { multistream } from "pino";
 import pinoElastic from "pino-elasticsearch";
-import fs from "fs";
 
-const { ELK_HOST, ELK_USER, ELK_PWD, LOG_PATH } = process.env;
+const { ELK_INDEX, ELK_HOST, ELK_APIKEY } = process.env;
 
 const streamToElastic = pinoElastic({
-  index: "dcbot",
+  index: ELK_INDEX || "dcbot",
   node: ELK_HOST || "",
   auth: {
-    username: ELK_USER || "",
-    password: ELK_PWD || "",
+    apiKey: ELK_APIKEY || ""
   },
   esVersion: 8,
   flushBytes: 1000,
@@ -18,8 +16,8 @@ const streamToElastic = pinoElastic({
 
 export const logger = pino(
   {
-    name: "dcbot",
+    name: ELK_INDEX || "dcbot",
     nestedKey: "payload",
   },
-  multistream([{ stream: fs.createWriteStream(LOG_PATH || "log.txt") }, { stream: streamToElastic }])
+  multistream([{ stream: process.stdout }, { stream: streamToElastic }])
 );
