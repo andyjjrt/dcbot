@@ -64,8 +64,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
         {
           type: "command",
           guild: interaction.guild!.name,
+          guildId: interaction.guild!.id,
           channel: (interaction.channel as TextChannel)!.name,
+          channelId: (interaction.channel as TextChannel)!.id,
           user: interaction.member!.user.username,
+          userId: interaction.member!.user.id,
         },
         `/${interaction.commandName}`
       );
@@ -101,10 +104,13 @@ client.on(Events.MessageCreate, async (message) => {
   if (message.author.globalName && message.content.length > 0) {
     logger.info(
       {
-        type: "command",
+        type: "message",
         guild: message.guild!.name,
+        guildId: message.guild!.id,
         channel: (message.channel as TextChannel).name,
+        channelId: (message.channel as TextChannel).id,
         user: message.author.username,
+        userId: message.author.id
       },
       message.content
     );
@@ -117,8 +123,11 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
       {
         type: "join voice",
         guild: newState.guild!.name,
+        guildId: newState.guild!.id,
         channel: newState.channel!.name,
+        channelId: newState.channel!.id,
         user: newState.member!.user.username,
+        userId: newState.member!.user.id
       },
       `${newState.member!.user.username} joined ${newState.channel!.name} in ${newState.guild!.name}`
     );
@@ -144,8 +153,11 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
       {
         type: "leave voice",
         guild: oldState.guild!.name,
+        guildId: oldState.guild!.id,
         channel: oldState.channel!.name,
+        channelId: oldState.channel!.id,
         user: oldState.member!.user.username,
+        userId: oldState.member!.user.id
       },
       `${oldState.member!.user.username} left ${oldState.channel!.name} in ${oldState.guild!.name}`
     );

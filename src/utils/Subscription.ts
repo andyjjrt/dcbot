@@ -41,7 +41,7 @@ import {
   VoiceConnectionState,
   AudioPlayerState,
 } from "@discordjs/voice";
-import { TextChannel, ThreadChannel } from "discord.js";
+import { TextChannel, ThreadChannel, VoiceChannel } from "discord.js";
 import { promisify } from "node:util";
 
 import type { Track } from "./Track";
@@ -226,6 +226,25 @@ export class MusicSubscription {
         title: this.currentPlaying.metadata.title,
         url: this.currentPlaying.url,
       });
+      const guildName = (await client.guilds.fetch(this.voiceConnection.joinConfig.guildId)).name;
+      const channelName = await client.channels
+        .fetch(this.voiceConnection.joinConfig.channelId || "")
+        .then((channel) => (channel ? (channel as VoiceChannel).name : ""));
+      const userName = (await client.users.fetch(this.currentPlaying.user.id)).username
+      logger.info(
+        {
+          type: "play",
+          guild: guildName,
+          guildId: this.voiceConnection.joinConfig.guildId,
+          channel: channelName,
+          channelId: this.voiceConnection.joinConfig.channelId,
+          user: userName,
+          userId: this.currentPlaying.user.id,
+          title: this.currentPlaying.metadata.title,
+          url: this.currentPlaying.url,
+        },
+        `${userName} played ${this.currentPlaying.metadata.title}`
+      );
     } catch (error) {
       // If an error occurred, try the next item of the queue instead
       if (!this.currentPlaying) return this.processQueue();

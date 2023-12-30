@@ -7,12 +7,12 @@ const { ELK_INDEX, ELK_HOST, ELK_APIKEY, ELK_CERT } = process.env;
 
 const streamToElastic = pinoElastic({
   index: ELK_INDEX || "dcbot",
-  node: ELK_HOST || "",
+  node: ELK_HOST || "http://localhost:9200",
   auth: {
     apiKey: ELK_APIKEY || ""
   },
   tls: {
-    ca: fs.readFileSync(ELK_CERT || ""),
+    ca: ELK_CERT ? fs.readFileSync(ELK_CERT) : undefined,
     rejectUnauthorized: false
   },
   esVersion: 8,
