@@ -82,6 +82,7 @@ const timestamp = useTimestamp({ offset: 0 });
 const route = useRoute();
 const data = reactive<Data>({ ...initData });
 const queueId = ref<string | undefined>(undefined);
+const lock = ref(false)
 const lobbySocket = ref<Socket>(
   io("/lobby", {
     query: {
@@ -106,7 +107,8 @@ const formatTime = computed(() => {
 });
 
 lobbySocket.value.on("ping", () => {
-  if (queueId.value) return;
+  if (queueId.value || lock.value) return;
+  lock.value = true;
   fetchApi("/verify", "POST", {
     data: {
       guildId: route.params.guildId,
@@ -126,7 +128,9 @@ lobbySocket.value.on("ping", () => {
       Object.assign(data, initData);
       queueId.value = undefined;
     });
-  });
+  }).finally(() => {
+    lock.value = false
+  })
 });
 
 onMounted(() => {
