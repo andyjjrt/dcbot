@@ -14,7 +14,7 @@ export default {
       // await interaction.deferReply();
       // await subscription.queueMessage.generateQueue(interaction);
       await interaction.reply({
-        embeds: [new SuccessEmbed(interaction.client.user, "Success", `[${WEBSITE_URL}/${interaction.guildId}](${WEBSITE_URL}/${interaction.guildId})`)],
+        embeds: [new SuccessEmbed(interaction.client.user, "Success", ` **[${WEBSITE_URL}/${interaction.guildId}](${WEBSITE_URL}/${interaction.guildId})**`)],
       });
     } else {
       await interaction.reply({
