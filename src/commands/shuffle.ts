@@ -2,6 +2,7 @@ import { ErrorEmbed, SuccessEmbed } from "./../utils/Embed";
 import { AudioPlayerStatus } from "@discordjs/voice";
 import { SlashCommandBuilder, CommandInteraction, GuildMember } from "discord.js";
 import { subscriptions } from "..";
+import { queueIo } from "../server/index";
 
 export default {
   data: new SlashCommandBuilder().setName("shuffle").setDescription("Shuffle current queue"),
@@ -17,6 +18,7 @@ export default {
             });
           } else {
             subscription.queue.sort((a, b) => Math.random() - 0.5);
+            queueIo.to(subscription.id).emit("queue", subscription.toQueue());
             await interaction.reply({
               embeds: [new SuccessEmbed(interaction.client.user, "Sucess", "Shuffle Completed")],
             });

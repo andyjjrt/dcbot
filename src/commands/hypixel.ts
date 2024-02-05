@@ -7,9 +7,6 @@ export default {
     const banList = [
       { name: "andyjjrt", time: new Date("2024-09-08T01:29:38.000") },
       { name: "murasakishionnnn", time: new Date("2024-08-12T14:59:45.000") },
-      { name: "AdeptTea3878393", time: new Date("2023-11-03T16:35:00.000") },
-      { name: "bennyjjrt", time: new Date("2023-11-03T02:40:00.000") },
-      { name: "Toast_tusi", time: new Date("2023-11-25T09:05:00.000") },
     ];
     await interaction.reply({
       embeds: [

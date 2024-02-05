@@ -2,18 +2,14 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import { ActivityType, Events, GatewayIntentBits, Snowflake, TextChannel } from "discord.js";
-import { MusicSubscription } from "./utils/Subscription";
-import http from "node:http";
-import fs from "node:fs";
 import path from "path";
 
+import { MusicSubscription } from "./utils/Subscription";
 import Client from "./utils/Client";
-import { play } from "./commands/play";
 import { initDB } from "./utils/db";
 import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import { logger } from "./utils/log";
-
-const { TOKEN, CLIENT_ID, BANNED_LIST, MUSIC_DIR, PORT } = process.env;
+const { TOKEN, CLIENT_ID, BANNED_LIST } = process.env;
 
 logger.info("starting...");
 
@@ -110,7 +106,7 @@ client.on(Events.MessageCreate, async (message) => {
         channel: (message.channel as TextChannel).name,
         channelId: (message.channel as TextChannel).id,
         user: message.author.username,
-        userId: message.author.id
+        userId: message.author.id,
       },
       message.content
     );
@@ -127,7 +123,7 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
         channel: newState.channel!.name,
         channelId: newState.channel!.id,
         user: newState.member!.user.username,
-        userId: newState.member!.user.id
+        userId: newState.member!.user.id,
       },
       `${newState.member!.user.username} joined ${newState.channel!.name} in ${newState.guild!.name}`
     );
@@ -157,7 +153,7 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
         channel: oldState.channel!.name,
         channelId: oldState.channel!.id,
         user: oldState.member!.user.username,
-        userId: oldState.member!.user.id
+        userId: oldState.member!.user.id,
       },
       `${oldState.member!.user.username} left ${oldState.channel!.name} in ${oldState.guild!.name}`
     );
@@ -181,6 +177,7 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
             });
             subscription.queueMessage.destroy();
             subscription.voiceConnection.destroy();
+            queueIo.to(subscription.id).disconnectSockets();
             subscriptions.delete(guildId);
           }
         }, 60000);
@@ -189,37 +186,9 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
   }
 });
 
-client.login(TOKEN);
+client.login(TOKEN).then();
 
-const server = http.createServer((req, res) => {
-  const param = (req.url || "").split("/");
-  if (param[1] === "song") {
-    const filePath = path.join(MUSIC_DIR || "", `${param[2]}.webm`);
-    const isFileExist = fs.existsSync(filePath);
-    if (!isFileExist) {
-      res.writeHead(404, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: true, data: "Not found" }));
-    } else {
-      const stat = fs.statSync(filePath);
-      res.writeHead(200, {
-        "Content-Type": "audio/mpeg",
-        "Content-Length": stat.size,
-        "Accept-Ranges": "bytes",
-      });
-      const readStream = fs.createReadStream(filePath);
-      readStream.pipe(res);
-    }
-  } else {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: false, data: "Hello world" }));
-  }
-});
-
-server.on("clientError", (err, socket) => {
-  socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
-});
-
-server.listen(PORT || 3000);
-logger.info("Server Starting...");
+import "./server/index";
+import { queueIo } from "./server/index";
 
 export default client;

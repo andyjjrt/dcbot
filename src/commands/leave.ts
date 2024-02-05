@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, CommandInteraction, GuildMember } from "discord.js";
 import { subscriptions, client } from "..";
 import { ErrorEmbed, InfoEmbed } from "../utils/Embed";
+import { queueIo } from "../server/index";
 
 export default {
   data: new SlashCommandBuilder().setName("leave").setDescription("Leave and clear queue"),
@@ -12,6 +13,7 @@ export default {
         if (subscription.voiceConnection.joinConfig.channelId === interaction.member.voice.channelId) {
           subscription.queueMessage.destroy();
           subscription.voiceConnection.destroy();
+          queueIo.to(subscription.id).disconnectSockets();
           subscriptions.delete(interaction.guildId);
           await interaction.reply({
             embeds: [new InfoEmbed(interaction.client.user, ":wave:  Left", "I'm right.")],

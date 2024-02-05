@@ -16,6 +16,7 @@ import { subscriptions, client } from "../index";
 import { ErrorEmbed } from "../utils/Embed";
 import { History } from "../utils/db/schema";
 import { logger } from "../utils/log";
+import { lobbyIo, queueIo } from "../server/index";
 
 export default {
   data: new SlashCommandBuilder()
@@ -156,6 +157,8 @@ export const play = async (
         if (subscription) subscription.enqueue(track);
       });
     }
+    queueIo.to(subscription.id).emit("queue", subscription.toQueue());
+    lobbyIo.to(subscription.voiceConnection.joinConfig.guildId).emit("ping");
     if (list.title === "" || list.url === "" || list.thumbnail === "" || list.tracks.length == 0) throw new Error();
     subscription.logChannel?.members.add(
       interaction.member!.user.id,

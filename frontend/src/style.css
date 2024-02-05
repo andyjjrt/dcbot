@@ -1,0 +1,13 @@
+@tailwind base;
+
+@layer base {
+  html,
+  body {
+    height: 100vh;
+    height: var(--doc-height);
+    overflow: hidden;
+  }
+}
+
+@tailwind components;
+@tailwind utilities;

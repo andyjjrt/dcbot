@@ -35,6 +35,7 @@ import { InfoEmbed } from "./Embed";
 import { getVideoDurationInSeconds } from "get-video-duration";
 import { getPlayListMetaData, getPlayListUrl, getTrackMetaData, getTrackUrl } from "./SpotifyDown";
 import YTDlpWrap from "yt-dlp-wrap";
+import { v4 as uuidv4 } from "uuid";
 const { MUSIC_DIR } = process.env;
 
 /**
@@ -47,6 +48,7 @@ export interface TrackData {
     channel?: string;
     channelUrl?: string;
     thumbnail: string;
+    id: string;
   };
   url: string;
   filePath: string;
@@ -76,7 +78,8 @@ export class Track implements TrackData {
     thumbnail: string;
     channel?: string;
     channelUrl?: string;
-  } = { url: "", title: "", thumbnail: "" };
+    id: string;
+  } = { url: "", title: "", thumbnail: "", id: uuidv4() };
   public readonly filePath: string;
   public readonly user: User | APIUser;
   public startTime: number;
@@ -99,6 +102,7 @@ export class Track implements TrackData {
       thumbnail: string;
       channel?: string;
       channelUrl?: string;
+      id: string;
     };
     filePath: string;
     user: User | APIUser;
@@ -178,7 +182,11 @@ export class Track implements TrackData {
       } else if (path.includes("playlist") || path.includes("album")) {
         return this.spotifyList(url, interaction.member!.user, defaultHandler);
       }
-    } else if (urlObj.hostname === "www.youtube.com" || urlObj.hostname === "youtube.com" || urlObj.hostname === "music.youtube.com") {
+    } else if (
+      urlObj.hostname === "www.youtube.com" ||
+      urlObj.hostname === "youtube.com" ||
+      urlObj.hostname === "music.youtube.com"
+    ) {
       if (path.includes("playlist")) {
         const id = urlObj.searchParams.get("list");
         musicUrl = `https://youtube.com/playlist?list=${id}`;
@@ -225,7 +233,8 @@ export class Track implements TrackData {
           thumbnail: track.thumbnails[0].url,
           url: track.original_url || track.url,
           channel: track.channel,
-          channelUrl: track.channel_url
+          channelUrl: track.channel_url,
+          id: uuidv4(),
         },
         url: url,
         filePath: `${MUSIC_DIR}/${track.id}.webm`,
@@ -263,6 +272,7 @@ export class Track implements TrackData {
             title: metaData.title,
             thumbnail: metaData.cover,
             url: `https://open.spotify.com/track/${id}`,
+            id: uuidv4(),
           },
           url: `https://www.youtube.com/watch?v=${ytId}`,
           filePath: `${MUSIC_DIR}/${ytId}.webm`,
@@ -285,7 +295,7 @@ export class Track implements TrackData {
     }
   ) {
     const urlObj = new URL(url);
-    const path = urlObj.pathname
+    const path = urlObj.pathname;
     const trackIdList = await getPlayListUrl(path);
     const metaData = await getPlayListMetaData(path);
 
@@ -300,6 +310,7 @@ export class Track implements TrackData {
                 title: metaData.title,
                 thumbnail: metaData.cover,
                 url: `https://open.spotify.com/track/${track.id}`,
+                id: uuidv4(),
               },
               url: `https://www.youtube.com/watch?v=${ytId}`,
               filePath: `${MUSIC_DIR}/${ytId}.webm`,

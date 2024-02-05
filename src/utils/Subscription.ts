@@ -49,6 +49,8 @@ import { subscriptions, client } from "..";
 import { Record } from "./db/schema";
 import QueueMessage from "./QueueMessage";
 import { logger } from "./log";
+import { lobbyIo, queueIo } from "../server/index";
+import { v4 as uuidv4 } from "uuid";
 
 const wait = promisify(setTimeout);
 
@@ -60,6 +62,7 @@ export class MusicSubscription {
   public readonly voiceConnection: VoiceConnection;
   public readonly audioPlayer: AudioPlayer;
   public readonly commandChannel: TextChannel;
+  public id: string;
   public queueMessage: QueueMessage;
   public logChannel: ThreadChannel | null = null;
   public leaveTimer: NodeJS.Timeout | null;
@@ -73,6 +76,7 @@ export class MusicSubscription {
   public constructor(voiceConnection: VoiceConnection, commandChannel: TextChannel) {
     this.voiceConnection = voiceConnection;
     this.audioPlayer = createAudioPlayer();
+    this.id = uuidv4();
     this.commandChannel = commandChannel;
     this.leaveTimer = null;
     this.queue = [];
@@ -81,13 +85,9 @@ export class MusicSubscription {
     this.voiceConnection.on("stateChange", async (_: VoiceConnectionState, newState: VoiceConnectionState) => {
       const guildId = voiceConnection.joinConfig.guildId;
       if (newState.status === VoiceConnectionStatus.Disconnected) {
-        if (newState.reason === VoiceConnectionDisconnectReason.WebSocketClose && newState.closeCode === 4014) {
-          subscriptions.delete(guildId);
-          this.voiceConnection.destroy();
-        } else {
-          subscriptions.delete(guildId);
-          this.voiceConnection.destroy();
-        }
+        queueIo.to(this.id).disconnectSockets();
+        this.voiceConnection.destroy();
+        subscriptions.delete(guildId);
       } else if (newState.status === VoiceConnectionStatus.Destroyed) {
         this.stop();
       } else if (
@@ -99,6 +99,7 @@ export class MusicSubscription {
           await entersState(this.voiceConnection, VoiceConnectionStatus.Ready, 20_000);
         } catch {
           if (this.voiceConnection.state.status !== VoiceConnectionStatus.Destroyed) {
+            queueIo.to(this.id).disconnectSockets();
             this.voiceConnection.destroy();
             subscriptions.delete(guildId);
           }
@@ -179,6 +180,19 @@ export class MusicSubscription {
   }
 
   /**
+   * Generate queue format
+   */
+  public toQueue() {
+    return {
+      queue: this.queue.map((t) => t.metadata),
+      loop: this.loop,
+      currentPlaying: this.currentPlaying ? this.currentPlaying.metadata : null,
+      startTime: this.currentPlaying ? this.currentPlaying.startTime : -1,
+      endTime: this.currentPlaying ? this.currentPlaying.endTime : -1,
+    };
+  }
+
+  /**
    * Attempts to play a Track from the queue.
    */
   private async processQueue(): Promise<void> {
@@ -188,8 +202,9 @@ export class MusicSubscription {
       this.commandChannel.send({
         embeds: [new InfoEmbed(client.user, ":wave:  Leaving", "bye")],
       });
-      subscriptions.delete(this.voiceConnection.joinConfig.guildId);
+      queueIo.to(this.id).disconnectSockets();
       this.voiceConnection.destroy();
+      subscriptions.delete(this.voiceConnection.joinConfig.guildId);
       return;
     }
 
@@ -218,6 +233,8 @@ export class MusicSubscription {
       // Attempt to convert the Track into an AudioResource (i.e. start streaming the video)
       const resource = await this.currentPlaying.createAudioResource();
       this.audioPlayer.play(resource);
+      queueIo.to(this.id).emit("queue", this.toQueue());
+      lobbyIo.to(this.voiceConnection.joinConfig.guildId).emit("ping");
       this.queueLock = false;
       await Record.create({
         time: new Date().getTime(),
@@ -230,7 +247,7 @@ export class MusicSubscription {
       const channelName = await client.channels
         .fetch(this.voiceConnection.joinConfig.channelId || "")
         .then((channel) => (channel ? (channel as VoiceChannel).name : ""));
-      const userName = (await client.users.fetch(this.currentPlaying.user.id)).username
+      const userName = (await client.users.fetch(this.currentPlaying.user.id)).username;
       logger.info(
         {
           type: "play",
