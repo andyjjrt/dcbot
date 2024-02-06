@@ -82,7 +82,6 @@ const timestamp = useTimestamp({ offset: 0 });
 const route = useRoute();
 const data = reactive<Data>({ ...initData });
 const queueId = ref<string | undefined>(undefined);
-const lock = ref(false)
 const lobbySocket = ref<Socket>(
   io("/lobby", {
     query: {
@@ -90,9 +89,7 @@ const lobbySocket = ref<Socket>(
     },
   })
 );
-const queueSocket = ref<Socket | undefined>(
-  undefined
-);
+const queueSocket = ref<Socket | undefined>(undefined);
 
 const progress = computed(() => timestamp.value - data.startTime);
 const progressTotal = computed(() => data.endTime - data.startTime);
@@ -107,30 +104,31 @@ const formatTime = computed(() => {
 });
 
 lobbySocket.value.on("ping", () => {
-  if (queueId.value || lock.value) return;
-  lock.value = true;
+  if (queueId.value) return;
   fetchApi("/verify", "POST", {
     data: {
       guildId: route.params.guildId,
     },
-  }).then((res) => {
-    queueId.value = res.data.data.queueId;
-    queueSocket.value = io("/queue", {
-      query: {
-        queueId: res.data.data.queueId,
-        guildId: route.params.guildId,
-      },
-    });
-    queueSocket.value.on("queue", (res) => {
-      Object.assign(data, res);
-    });
-    queueSocket.value.on("disconnect", () => {
-      Object.assign(data, initData);
-      queueId.value = undefined;
-    });
-  }).finally(() => {
-    lock.value = false
   })
+    .then((res) => {
+      queueId.value = res.data.data.queueId;
+      queueSocket.value = io("/queue", {
+        query: {
+          queueId: res.data.data.queueId,
+          guildId: route.params.guildId,
+        },
+      });
+      queueSocket.value.on("connect", () => {
+        console.log("connected to queue")
+      });
+      queueSocket.value.on("queue", (res) => {
+        Object.assign(data, res);
+      });
+      queueSocket.value.on("disconnect", () => {
+        Object.assign(data, initData);
+        queueId.value = undefined;
+      });
+    })
 });
 
 onMounted(() => {

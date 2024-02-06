@@ -1,4 +1,4 @@
-import { ErrorEmbed, SuccessEmbed, InfoEmbed } from "./../utils/Embed";
+import { ErrorEmbed, InfoEmbed } from "./../utils/Embed";
 import { AudioPlayerStatus } from "@discordjs/voice";
 import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
 import { subscriptions, client } from "..";
@@ -14,7 +14,7 @@ export default {
       // await interaction.deferReply();
       // await subscription.queueMessage.generateQueue(interaction);
       await interaction.reply({
-        embeds: [new SuccessEmbed(interaction.client.user, "Success", ` **[Click me](${WEBSITE_URL}/${interaction.guildId})**`)],
+        embeds: [new InfoEmbed(interaction.client.user, ":arrow_forward:  Queue", ` **[Click me](${WEBSITE_URL}/${interaction.guildId})**`)],
       });
     } else {
       await interaction.reply({
