@@ -120,7 +120,7 @@ lobbyIo.on("connection", (socket) => {
 
 queueIo.on("connection", (socket) => {
   const guildId = socket.handshake.query.guildId as string;
-  const queueId = socket.handshake.query.queueId as string;
+  const queueId = socket.handshake.auth.queueId as string;
   console.log(queueId, guildId)
   socket.join(queueId);
   const subscription = subscriptions.get(guildId);

@@ -49,7 +49,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute } from "vue-router";
-import { Socket, io } from "socket.io-client";
+import { Manager, Socket } from "socket.io-client";
 import { useTimestamp } from "@vueuse/core";
 import { fetchApi } from "../utils/api";
 
@@ -82,13 +82,12 @@ const timestamp = useTimestamp({ offset: 0 });
 const route = useRoute();
 const data = reactive<Data>({ ...initData });
 const queueId = ref<string | undefined>(undefined);
-const lobbySocket = ref<Socket>(
-  io("/lobby", {
-    query: {
-      guildId: route.params.guildId,
-    },
-  })
-);
+const manager = new Manager({
+  query: {
+    guildId: route.params.guildId,
+  },
+});
+const lobbySocket = ref<Socket>(manager.socket("/lobby"));
 const queueSocket = ref<Socket | undefined>(undefined);
 
 const progress = computed(() => timestamp.value - data.startTime);
@@ -109,27 +108,25 @@ lobbySocket.value.on("ping", () => {
     data: {
       guildId: route.params.guildId,
     },
-  })
-    .then((res) => {
-      queueId.value = res.data.data.queueId;
-      console.log(res.data.data.queueId, route.params.guildId)
-      queueSocket.value = io("/queue", {
-        query: {
-          queueId: res.data.data.queueId,
-          guildId: route.params.guildId,
-        },
-      });
-      queueSocket.value.on("connect", () => {
-        console.log("connected to queue")
-      });
-      queueSocket.value.on("queue", (res) => {
-        Object.assign(data, res);
-      });
-      queueSocket.value.on("disconnect", () => {
-        Object.assign(data, initData);
-        queueId.value = undefined;
-      });
+  }).then((res) => {
+    queueId.value = res.data.data.queueId;
+    console.log(res.data.data.queueId, route.params.guildId);
+    queueSocket.value = manager.socket("/queue", {
+      auth: {
+        queueId: res.data.data.queueId
+      }
     })
+    queueSocket.value.on("connect", () => {
+      console.log("connected to queue");
+    });
+    queueSocket.value.on("queue", (res) => {
+      Object.assign(data, res);
+    });
+    queueSocket.value.on("disconnect", () => {
+      Object.assign(data, initData);
+      queueId.value = undefined;
+    });
+  });
 });
 
 onMounted(() => {
