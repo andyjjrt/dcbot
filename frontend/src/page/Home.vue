@@ -112,6 +112,7 @@ lobbySocket.value.on("ping", () => {
   })
     .then((res) => {
       queueId.value = res.data.data.queueId;
+      console.log(res.data.data.queueId, route.params.guildId)
       queueSocket.value = io("/queue", {
         query: {
           queueId: res.data.data.queueId,
