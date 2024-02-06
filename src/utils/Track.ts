@@ -49,6 +49,7 @@ export interface TrackData {
     channelUrl?: string;
     thumbnail: string;
     id: string;
+    ytId: string;
   };
   url: string;
   filePath: string;
@@ -79,7 +80,8 @@ export class Track implements TrackData {
     channel?: string;
     channelUrl?: string;
     id: string;
-  } = { url: "", title: "", thumbnail: "", id: uuidv4() };
+    ytId: string;
+  } = { url: "", title: "", thumbnail: "", id: uuidv4(), ytId: "" };
   public readonly filePath: string;
   public readonly user: User | APIUser;
   public startTime: number;
@@ -103,6 +105,7 @@ export class Track implements TrackData {
       channel?: string;
       channelUrl?: string;
       id: string;
+      ytId: string;
     };
     filePath: string;
     user: User | APIUser;
@@ -235,6 +238,7 @@ export class Track implements TrackData {
           channel: track.channel,
           channelUrl: track.channel_url,
           id: uuidv4(),
+          ytId: track.id
         },
         url: url,
         filePath: `${MUSIC_DIR}/${track.id}.webm`,
@@ -273,6 +277,7 @@ export class Track implements TrackData {
             thumbnail: metaData.cover,
             url: `https://open.spotify.com/track/${id}`,
             id: uuidv4(),
+            ytId: ytId
           },
           url: `https://www.youtube.com/watch?v=${ytId}`,
           filePath: `${MUSIC_DIR}/${ytId}.webm`,
@@ -311,6 +316,7 @@ export class Track implements TrackData {
                 thumbnail: metaData.cover,
                 url: `https://open.spotify.com/track/${track.id}`,
                 id: uuidv4(),
+                ytId: ytId
               },
               url: `https://www.youtube.com/watch?v=${ytId}`,
               filePath: `${MUSIC_DIR}/${ytId}.webm`,

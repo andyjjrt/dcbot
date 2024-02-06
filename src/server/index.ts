@@ -108,30 +108,39 @@ app.post("/api/verify", (req, res) => {
 });
 
 lobbyIo.on("connection", (socket) => {
-  const guildId = socket.handshake.query.guildId as string;
-  console.log("a user connected");
-  socket.join(guildId);
-  const subscription = subscriptions.get(guildId);
-  if (subscription) {
-    console.log("ping");
-    lobbyIo.to(guildId).emit("ping");
-  }
+
+  socket.on("enter", (param) => {
+    socket.join(param.guildId);
+    const subscription = subscriptions.get(param.guildId);
+    if (subscription) {
+      lobbyIo.to(param.guildId).emit("ping");
+    }
+  });
+
+  socket.on("leave", (param) => {
+    socket.leave(param.guildId);
+  });
+
 });
 
 queueIo.on("connection", (socket) => {
-  const guildId = socket.handshake.query.guildId as string;
-  const queueId = socket.handshake.auth.queueId as string;
-  console.log(queueId, guildId)
-  socket.join(queueId);
-  const subscription = subscriptions.get(guildId);
-  if (subscription) {
-    queueIo.to(queueId).emit("queue", subscription.toQueue());
-  }
 
-  socket.on("queue", () => {
-    const subscription = subscriptions.get(guildId);
+  socket.on("enter", (param) => {
+    socket.join(param.queueId);
+    const subscription = subscriptions.get(param.guildId);
     if (subscription) {
-      queueIo.to(queueId).emit("queue", subscription.toQueue());
+      queueIo.to(param.queueId).emit("queue", subscription.toQueue());
+    }
+  });
+
+  socket.on("leave", (param) => {
+    socket.leave(param.queueId);
+  });
+
+  socket.on("queue", (param) => {
+    const subscription = subscriptions.get(param.guildId);
+    if (subscription) {
+      queueIo.to(param.queueId).emit("queue", subscription.toQueue());
     }
   });
 });

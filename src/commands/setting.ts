@@ -3,7 +3,8 @@ import { SlashCommandBuilder, PermissionsBitField, ChatInputCommandInteraction }
 import { client } from "../index";
 import { Record, Setting } from "../utils/db/schema";
 import { exec } from "child_process";
-const { MUSIC_DIR } = process.env;
+import { request } from "undici";
+const { MUSIC_DIR, SERVER_IP } = process.env;
 
 function formatBytes(bytes: number, decimals = 2) {
   if (!+bytes) return "0 Bytes";
@@ -66,6 +67,7 @@ export default {
           resolve(stdout);
         });
       });
+      const quota = await request(`http://quota.nccu.edu.tw/Quota?ip=${SERVER_IP}`).then(res => res.body.json())
       const startUsage = process.cpuUsage();
       const now = Date.now();
       while (Date.now() - now < 500);
@@ -85,6 +87,10 @@ export default {
                 Resident Set Size: ${formatBytes(process.memoryUsage().rss)}
                 Array Buffers: ${formatBytes(process.memoryUsage().arrayBuffers)}
                 `,
+            })
+            .addFields({
+              name: "Quota",
+              value: `${((quota as any).subscriber[0].outgoingBytes / 1000000000).toFixed(3)} GB`,
             })
             .addFields({
               name: "Version",
