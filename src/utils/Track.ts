@@ -125,16 +125,20 @@ export class Track implements TrackData {
   public async createAudioResource() {
     if (!fs.existsSync(this.filePath)) {
       const ytDlpWrap = new YTDlpWrap();
-      await ytDlpWrap.execPromise([
-        this.url,
-        "-o",
-        `${MUSIC_DIR}/%(id)s.%(ext)s`,
-        "--format",
-        "bestaudio",
-        "--quie",
-        "--file-access-retries",
-        "1",
-      ]);
+      await ytDlpWrap
+        .execPromise([
+          this.url,
+          "-o",
+          `${MUSIC_DIR}/%(id)s.%(ext)s`,
+          "--format",
+          "bestaudio",
+          "--quiet",
+          "--file-access-retries",
+          "1",
+        ])
+        .catch((e) => {
+          throw new Error(e.message.split("Stderr:\n")[1]);
+        });
     }
     const duration = await getVideoDurationInSeconds(createReadStream(this.filePath));
     this.startTime = new Date().getTime();
@@ -209,12 +213,11 @@ export class Track implements TrackData {
 
     // Get metadata
     const ytDlpWrap = new YTDlpWrap();
-    let stdout = await ytDlpWrap.execPromise([
-      "--dump-single-json",
-      "--no-abort-on-error",
-      "--flat-playlist",
-      musicUrl,
-    ]);
+    let stdout = await ytDlpWrap
+      .execPromise(["--dump-single-json", "--no-abort-on-error", "--flat-playlist", musicUrl])
+      .catch((e) => {
+        throw new Error(e.message.split("Stderr:\n")[1]);
+      });
     let metadata = JSON.parse(stdout);
     let title = metadata.title;
     let thumbnail = metadata.thumbnails[0].url;
@@ -238,7 +241,7 @@ export class Track implements TrackData {
           channel: track.channel,
           channelUrl: track.channel_url,
           id: uuidv4(),
-          ytId: track.id
+          ytId: track.id,
         },
         url: url,
         filePath: `${MUSIC_DIR}/${track.id}.webm`,
@@ -277,7 +280,7 @@ export class Track implements TrackData {
             thumbnail: metaData.cover,
             url: `https://open.spotify.com/track/${id}`,
             id: uuidv4(),
-            ytId: ytId
+            ytId: ytId,
           },
           url: `https://www.youtube.com/watch?v=${ytId}`,
           filePath: `${MUSIC_DIR}/${ytId}.webm`,
@@ -316,7 +319,7 @@ export class Track implements TrackData {
                 thumbnail: metaData.cover,
                 url: `https://open.spotify.com/track/${track.id}`,
                 id: uuidv4(),
-                ytId: ytId
+                ytId: ytId,
               },
               url: `https://www.youtube.com/watch?v=${ytId}`,
               filePath: `${MUSIC_DIR}/${ytId}.webm`,

@@ -33,7 +33,7 @@ export class ErrorEmbed extends EmbedBuilder {
     super();
     this.setColor(0xff0000)
       .setTitle(`:x:  ${title}`)
-      .setDescription(description)
+      .setDescription(description.slice(0, 4096))
       .setTimestamp()
       .setFooter({
         text: user.username,
