@@ -14,7 +14,13 @@ export default {
       // await interaction.deferReply();
       // await subscription.queueMessage.generateQueue(interaction);
       await interaction.reply({
-        embeds: [new InfoEmbed(interaction.client.user, ":arrow_forward:  Queue", ` **[Click me](${WEBSITE_URL}/${interaction.guildId})**`)],
+        embeds: [
+          new InfoEmbed(
+            interaction.client.user,
+            ":arrow_forward:  Queue",
+            ` **[Click me](${WEBSITE_URL}/${interaction.guildId})**`
+          ),
+        ],
       });
     } else {
       await interaction.reply({
