@@ -6,10 +6,9 @@ import {
   ChatInputCommandInteraction,
   MessageComponentInteraction,
   AutocompleteInteraction,
-  GuildTextThreadManager,
-  Role,
 } from "discord.js";
 import { joinVoiceChannel, entersState, VoiceConnectionStatus } from "@discordjs/voice";
+import { Op } from "sequelize";
 import { Track } from "../utils/Track";
 import { MusicSubscription } from "../utils/Subscription";
 import { subscriptions, client } from "../index";
@@ -43,8 +42,14 @@ export default {
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const userId = interaction.member!.user.id;
+    const query = interaction.options.get("url", true).value as string;
     const history = await History.findAll({
-      where: { userId: userId },
+      where: {
+        userId: userId,
+        title: {
+          [Op.like]: "%" + query + "%",
+        },
+      },
       limit: 10,
       order: [["time", "DESC"]],
     });
