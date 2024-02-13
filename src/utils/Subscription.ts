@@ -241,7 +241,7 @@ export class MusicSubscription {
         guildId: this.voiceConnection.joinConfig.guildId,
         userId: this.currentPlaying.user.id,
         title: this.currentPlaying.metadata.title,
-        url: this.currentPlaying.url,
+        url: this.currentPlaying.metadata.url,
       });
       const guildName = (await client.guilds.fetch(this.voiceConnection.joinConfig.guildId)).name;
       const channelName = await client.channels
@@ -258,7 +258,7 @@ export class MusicSubscription {
           user: userName,
           userId: this.currentPlaying.user.id,
           title: this.currentPlaying.metadata.title,
-          url: this.currentPlaying.url,
+          url: this.currentPlaying.metadata.url,
         },
         `${userName} played ${this.currentPlaying.metadata.title}`
       );

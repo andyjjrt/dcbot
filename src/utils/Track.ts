@@ -37,31 +37,7 @@ import { getPlayListMetaData, getPlayListUrl, getTrackMetaData, getTrackUrl } fr
 import YTDlpWrap from "yt-dlp-wrap";
 import { v4 as uuidv4 } from "uuid";
 const { MUSIC_DIR } = process.env;
-
-/**
- * This is the data required to create a Track object.
- */
-export interface TrackData {
-  metadata: {
-    url: string;
-    title: string;
-    channel?: string;
-    channelUrl?: string;
-    thumbnail: string;
-    id: string;
-    ytId: string;
-  };
-  url: string;
-  filePath: string;
-  user: User | APIUser;
-  startTime: number;
-  endTime: number;
-  onStart: (url: string, title: string, thumbnail: string) => void;
-  onError: (error: Error) => void;
-}
-
-const noop = () => {};
-
+import { TrackInterface, TrackMetadata } from "types/Track";
 /**
  * A Track represents information about a YouTube video (in this context) that can be added to a queue.
  * It contains the title and URL of the video, as well as functions onStart, onFinish, onError, that act
@@ -71,18 +47,8 @@ const noop = () => {};
  * we use tracks as they don't pre-emptively load the videos. Instead, once a Track is taken from the
  * queue, it is converted into an AudioResource just in time for playback.
  */
-export class Track implements TrackData {
-  public readonly url: string;
-  public readonly metadata: {
-    url: string;
-    title: string;
-    thumbnail: string;
-    channel?: string;
-    channelUrl?: string;
-    id: string;
-    ytId: string;
-  } = { url: "", title: "", thumbnail: "", id: uuidv4(), ytId: "" };
-  public readonly filePath: string;
+export class Track implements TrackInterface {
+  public readonly metadata: TrackMetadata = { url: "", title: "", thumbnail: "", id: uuidv4(), ytId: "" };
   public readonly user: User | APIUser;
   public startTime: number;
   public endTime: number;
@@ -90,31 +56,17 @@ export class Track implements TrackData {
   public readonly onError: (error: Error) => void;
 
   private constructor({
-    url,
     metadata,
-    filePath,
+    user,
     onStart,
     onError,
-    user,
   }: {
-    url: string;
-    metadata: {
-      url: string;
-      title: string;
-      thumbnail: string;
-      channel?: string;
-      channelUrl?: string;
-      id: string;
-      ytId: string;
-    };
-    filePath: string;
+    metadata: TrackMetadata;
     user: User | APIUser;
     onStart: (url: string, title: string, thumbnail: string) => void;
     onError: (error: Error) => void;
   }) {
-    this.url = url;
     this.metadata = metadata;
-    this.filePath = filePath;
     this.user = user;
     this.onStart = onStart;
     this.onError = onError;
@@ -123,11 +75,11 @@ export class Track implements TrackData {
   }
 
   public async createAudioResource() {
-    if (!fs.existsSync(this.filePath)) {
+    if (!fs.existsSync(`${MUSIC_DIR}/${this.metadata.ytId}.webm`)) {
       const ytDlpWrap = new YTDlpWrap();
       await ytDlpWrap
         .execPromise([
-          this.url,
+          `https://www.youtube.com/watch?v=${this.metadata.ytId}`,
           "-o",
           `${MUSIC_DIR}/%(id)s.%(ext)s`,
           "--format",
@@ -140,10 +92,10 @@ export class Track implements TrackData {
           throw new Error(e.message.split("Stderr:\n")[1]);
         });
     }
-    const duration = await getVideoDurationInSeconds(createReadStream(this.filePath));
+    const duration = await getVideoDurationInSeconds(createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.webm`));
     this.startTime = new Date().getTime();
     this.endTime = new Date().getTime() + duration * 1000;
-    return createAudioResource(createReadStream(this.filePath), {
+    return createAudioResource(createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.webm`), {
       metadata: this,
       inputType: StreamType.WebmOpus,
     });
@@ -243,8 +195,6 @@ export class Track implements TrackData {
           id: uuidv4(),
           ytId: track.id,
         },
-        url: `https://www.youtube.com/watch?v=${track.id}`,
-        filePath: `${MUSIC_DIR}/${track.id}.webm`,
         user: interaction.member!.user,
         ...defaultHandler,
       });
@@ -282,8 +232,6 @@ export class Track implements TrackData {
             id: uuidv4(),
             ytId: ytId,
           },
-          url: `https://www.youtube.com/watch?v=${ytId}`,
-          filePath: `${MUSIC_DIR}/${ytId}.webm`,
           user: user,
           ...handler,
         }),
@@ -321,8 +269,6 @@ export class Track implements TrackData {
                 id: uuidv4(),
                 ytId: ytId,
               },
-              url: `https://www.youtube.com/watch?v=${ytId}`,
-              filePath: `${MUSIC_DIR}/${ytId}.webm`,
               user: user,
               ...handler,
             });

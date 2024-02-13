@@ -22,14 +22,14 @@ export default {
       return;
     }
     const query = interaction.options.get("name", true).value as string;
-    const track = subscription.queue.find((t) => t.url === query);
+    const track = subscription.queue.find((t) => t.metadata.url === query);
     if (!track) {
       await interaction.reply({
         embeds: [new ErrorEmbed(interaction.client.user, "Error", "No such song in this queue")],
       });
       return
     }
-    subscription.queue.sort((a, b) => (a.url === query ? -1 : b.url === query ? 1 : 0));
+    subscription.queue.sort((a, b) => (a.metadata.url === query ? -1 : b.metadata.url === query ? 1 : 0));
     await interaction.reply({
       embeds: [
         new SuccessEmbed(
@@ -54,7 +54,7 @@ export default {
         .filter((_, index) => index < 25)
         .map((track) => ({
           name: `${track.metadata.title}`,
-          value: track.url,
+          value: track.metadata.url,
         }))
     );
   },

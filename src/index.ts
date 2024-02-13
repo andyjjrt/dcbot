@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
-import { ActivityType, Events, GatewayIntentBits, Snowflake, TextChannel } from "discord.js";
+import { ActivityType, Events, GatewayIntentBits, Snowflake, TextChannel, VoiceChannel } from "discord.js";
 import path from "path";
 
 import { MusicSubscription } from "./utils/Subscription";
@@ -9,6 +9,7 @@ import Client from "./utils/Client";
 import { initDB } from "./utils/db";
 import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import { logger } from "./utils/log";
+import { queueIo } from "./server/index";
 const { TOKEN, CLIENT_ID, BANNED_LIST } = process.env;
 
 logger.info("starting...");
@@ -127,22 +128,6 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
       },
       `${newState.member!.user.username} joined ${newState.channel!.name} in ${newState.guild!.name}`
     );
-    const guildId = oldState.guild.id;
-    const subscription = subscriptions.get(guildId);
-    if (subscription && newState.member!.user.id !== client.user.id) {
-      if (subscription.leaveTimer) {
-        clearTimeout(subscription.leaveTimer);
-        subscription.commandChannel.send({
-          embeds: [
-            new InfoEmbed(
-              client.user,
-              ":partying_face:  Yeah~",
-              `**${newState.member!.user.username}** is back with me.`
-            ),
-          ],
-        });
-      }
-    }
   }
   if (newState.channelId === null) {
     logger.info(
@@ -157,10 +142,37 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
       },
       `${oldState.member!.user.username} left ${oldState.channel!.name} in ${oldState.guild!.name}`
     );
-    const guildId = oldState.guild.id;
-    const subscription = subscriptions.get(guildId);
-    if (subscription && oldState.member!.user.id !== client.user.id) {
-      if (oldState.channel!.members.size <= 1) {
+  }
+
+  const guildId = oldState.guild.id;
+  const subscription = subscriptions.get(guildId);
+  if (subscription) {
+    if (
+      newState.member!.user.id !== client.user.id &&
+      newState.channelId === subscription.voiceConnection.joinConfig.channelId
+    ) {
+      console.log(newState.channelId, subscription.voiceConnection.joinConfig.channelId);
+
+      if (subscription.leaveTimer) {
+        clearTimeout(subscription.leaveTimer);
+        subscription.leaveTimer = null;
+        subscription.commandChannel.send({
+          embeds: [
+            new InfoEmbed(
+              client.user,
+              ":partying_face:  Yeah~",
+              `**${newState.member!.user.username}** is back with me.`
+            ),
+          ],
+        });
+      }
+    }
+    if (oldState.member!.user.id !== client.user.id) {
+      if (
+        (client.channels.cache.get(subscription.voiceConnection.joinConfig.channelId!) as VoiceChannel).members.size <=
+          1 &&
+        subscription.leaveTimer === null
+      ) {
         subscription.commandChannel.send({
           embeds: [
             new InfoEmbed(
@@ -189,6 +201,5 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
 client.login(TOKEN).then();
 
 import "./server/index";
-import { queueIo } from "./server/index";
 
 export default client;
