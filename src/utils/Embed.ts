@@ -1,4 +1,5 @@
 import { EmbedBuilder, Client, User, APIUser, ClientUser } from "discord.js";
+import { TrackMetadata } from "../types/Track";
 
 export class SuccessEmbed extends EmbedBuilder {
   constructor(user: ClientUser | User | APIUser, title: string, description: string) {
@@ -15,11 +16,15 @@ export class SuccessEmbed extends EmbedBuilder {
 }
 
 export class PlayingEmbed extends EmbedBuilder {
-  constructor(user: ClientUser | User | APIUser, name: string, url: string) {
+  constructor(user: ClientUser | User | APIUser, metaData: TrackMetadata) {
     super();
     this.setColor(0x3ca2cd)
       .setTitle(`:arrow_forward:  Now Playing`)
-      .setDescription(`[${name}](${url})`)
+      .setDescription(
+        `**[${metaData.title}](${metaData.url})**\nBy ${
+          metaData.channelUrl ? `[${metaData.channel}](${metaData.channelUrl})` : metaData.channel
+        }`
+      )
       .setTimestamp()
       .setFooter({
         text: user.username,

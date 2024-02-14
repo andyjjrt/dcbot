@@ -139,9 +139,9 @@ export const play = async (
     const list = await Track.from(
       url,
       {
-        onStart(url, title, thumbnail) {
+        onStart(metaData) {
           subscription!.logChannel?.send({
-            embeds: [new PlayingEmbed(interaction.member!.user, title, url).setThumbnail(thumbnail)],
+            embeds: [new PlayingEmbed(interaction.member!.user, metaData).setThumbnail(metaData.thumbnail)],
           });
         },
         onError(error) {
@@ -169,13 +169,15 @@ export const play = async (
       interaction.member!.user.id,
       `${interaction.member!.user.id} queued ${list.title}`
     );
-    await History.upsert({
-      userId: interaction.member!.user.id,
-      title: list.title,
-      url: list.url,
-      time: new Date(),
-      list: list.tracks.length > 1,
-    });
+    if (list.url.length < 100 && list.title.length < 100) {
+      await History.upsert({
+        userId: interaction.member!.user.id,
+        title: list.title,
+        url: list.url,
+        time: new Date(),
+        list: list.tracks.length > 1,
+      });
+    }
     await interaction.editReply({
       embeds: [
         new SuccessEmbed(interaction.member!.user, "Success", `Enqueued **[${list.title}](${list.url})**`).setThumbnail(

@@ -52,7 +52,7 @@ export class Track implements TrackInterface {
   public readonly user: User | APIUser;
   public startTime: number;
   public endTime: number;
-  public readonly onStart: (url: string, title: string, thumbnail: string) => void;
+  public readonly onStart: (metaData: TrackMetadata) => void;
   public readonly onError: (error: Error) => void;
 
   private constructor({
@@ -63,7 +63,7 @@ export class Track implements TrackInterface {
   }: {
     metadata: TrackMetadata;
     user: User | APIUser;
-    onStart: (url: string, title: string, thumbnail: string) => void;
+    onStart: (metaData: TrackMetadata) => void;
     onError: (error: Error) => void;
   }) {
     this.metadata = metadata;
@@ -120,8 +120,8 @@ export class Track implements TrackInterface {
     tracks: Track[];
   }> {
     const defaultHandler = {
-      onStart(url: string, title: string, thumbnail: string) {
-        methods.onStart(url, title, thumbnail);
+      onStart(metaData: TrackMetadata) {
+        methods.onStart(metaData);
       },
       onError(error: Error) {
         methods.onError(error);
@@ -212,7 +212,7 @@ export class Track implements TrackInterface {
     url: string,
     user: User | APIUser,
     handler: {
-      onStart(url: string, title: string, thumbnail: string): void;
+      onStart(metaData: TrackMetadata): void;
       onError(error: Error): void;
     }
   ) {
@@ -229,6 +229,7 @@ export class Track implements TrackInterface {
             title: metaData.title,
             thumbnail: metaData.cover,
             url: `https://open.spotify.com/track/${id}`,
+            channel: metaData.artists,
             id: uuidv4(),
             ytId: ytId,
           },
@@ -246,7 +247,7 @@ export class Track implements TrackInterface {
     url: string,
     user: User | APIUser,
     handler: {
-      onStart(url: string, title: string, thumbnail: string): void;
+      onStart(metaData: TrackMetadata): void;
       onError(error: Error): void;
     }
   ) {
@@ -266,6 +267,7 @@ export class Track implements TrackInterface {
                 title: metaData.title,
                 thumbnail: metaData.cover,
                 url: `https://open.spotify.com/track/${track.id}`,
+                channel: metaData.artists,
                 id: uuidv4(),
                 ytId: ytId,
               },

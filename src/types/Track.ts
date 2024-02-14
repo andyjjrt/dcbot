@@ -29,6 +29,6 @@ export interface TrackInterface {
   user: import("discord.js").User | import("discord.js").APIUser;
   startTime: number;
   endTime: number;
-  onStart: (url: string, title: string, thumbnail: string) => void;
+  onStart: (metaData: TrackMetadata) => void;
   onError: (error: Error) => void;
 }

@@ -118,9 +118,7 @@ export class MusicSubscription {
       } else if (newState.status === AudioPlayerStatus.Playing) {
         // If the Playing state has been entered, then a new track has started playback.
         (newState.resource as AudioResource<Track>).metadata.onStart(
-          (newState.resource as AudioResource<Track>).metadata.metadata.url,
-          (newState.resource as AudioResource<Track>).metadata.metadata.title,
-          (newState.resource as AudioResource<Track>).metadata.metadata.thumbnail
+          (newState.resource as AudioResource<Track>).metadata.metadata
         );
       }
     });
