@@ -60,7 +60,7 @@ export default {
       time: new Date(his.get("time") as string).getTime(),
       list: his.get("list") as boolean,
     }));
-    const filtered = choices.filter((choice) => choice.title.startsWith(focusedValue));
+    const filtered = choices.filter((choice) => choice.title.includes(focusedValue)).filter((choice) => choice.url.length < 100);
     await interaction.respond(
       filtered.map((choice) => ({
         name: `${choice.list ? "🎶" : "🎵"} ${choice.title}`,

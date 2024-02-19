@@ -202,7 +202,7 @@ export class Track implements TrackInterface {
 
     return {
       title: title,
-      url: url,
+      url: musicUrl,
       thumbnail: thumbnail,
       tracks: tracks,
     };
