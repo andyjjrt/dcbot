@@ -8,7 +8,7 @@ import {
   AutocompleteInteraction,
 } from "discord.js";
 import { joinVoiceChannel, entersState, VoiceConnectionStatus } from "@discordjs/voice";
-import { Op } from "sequelize";
+import { Op, where, fn, col } from "sequelize";
 import { Track } from "../utils/Track";
 import { MusicSubscription } from "../utils/Subscription";
 import { subscriptions, client } from "../index";
@@ -45,10 +45,14 @@ export default {
     const query = interaction.options.get("url", true).value as string;
     const history = await History.findAll({
       where: {
-        userId: userId,
-        title: {
-          [Op.like]: "%" + query + "%",
-        },
+        [Op.and]: [
+          {
+            userId: userId,
+          }, 
+          where(fn('lower', col('title')), {
+            [Op.like]: `%${query.toLowerCase()}%`,
+          }),
+        ]
       },
       limit: 10,
       order: [["time", "DESC"]],
@@ -60,6 +64,7 @@ export default {
       time: new Date(his.get("time") as string).getTime(),
       list: his.get("list") as boolean,
     }));
+    console.log(choices)
     const filtered = choices.filter((choice) => choice.title.includes(focusedValue)).filter((choice) => choice.url.length < 100);
     await interaction.respond(
       filtered.map((choice) => ({
