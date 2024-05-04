@@ -1,5 +1,7 @@
 import { EmbedBuilder, Client, User, APIUser, ClientUser } from "discord.js";
 import { TrackMetadata } from "../types/Track";
+import { ChatResponse } from "ollama";
+const { OLLAMA_MODEL } = process.env;
 
 export class SuccessEmbed extends EmbedBuilder {
   constructor(user: ClientUser | User | APIUser, title: string, description: string) {
@@ -71,6 +73,19 @@ export class InfoEmbed extends EmbedBuilder {
       .setFooter({
         text: user.username,
         iconURL: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`,
+      });
+  }
+}
+
+export class AIEmbed extends EmbedBuilder {
+  constructor(user: ClientUser | User | APIUser, question: string, response: ChatResponse) {
+    super();
+    this.setColor(0x53fafa)
+      .setTitle(":llama: AI answer")
+      .setDescription(`Q: ${question}\nA: ${response.message.content}`)
+      .setTimestamp()
+      .setFooter({
+        text: `${response.model} | ${(response.eval_count * 1000000000 / response.eval_duration).toFixed(2)} tps`,
       });
   }
 }
