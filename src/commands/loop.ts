@@ -16,7 +16,8 @@ export default {
           { name: "Whole queue", value: "queue" }
         )
         .setRequired(true)
-    ),
+    )
+    .setDMPermission(false),
   async execute(interaction: CommandInteraction) {
     const status = interaction.options.get("type", true).value as string;
     if (!interaction.isCommand() || !interaction.guildId) return;

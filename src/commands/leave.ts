@@ -4,7 +4,7 @@ import { ErrorEmbed, InfoEmbed } from "../utils/Embed";
 import { queueIo } from "../server/index";
 
 export default {
-  data: new SlashCommandBuilder().setName("leave").setDescription("Leave and clear queue"),
+  data: new SlashCommandBuilder().setName("leave").setDescription("Leave and clear queue").setDMPermission(false),
   async execute(interaction: CommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);

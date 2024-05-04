@@ -30,20 +30,11 @@ export default {
     )
     .addSubcommand((command) => command.setName("refresh").setDescription("Refresh commands"))
     .addSubcommand((command) => command.setName("info").setDescription("Get info"))
-    .addSubcommand((command) => command.setName("records").setDescription("Get recent records")),
+    .addSubcommand((command) => command.setName("records").setDescription("Get recent records"))
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator).setDMPermission(false),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand(true);
     await interaction.deferReply({ ephemeral: true });
-    const isAdmin = (interaction.member!.permissions as PermissionsBitField).has(
-      PermissionsBitField.Flags.Administrator
-    );
-    if (!isAdmin) {
-      await interaction.followUp({
-        embeds: [new ErrorEmbed(interaction.client.user, "Error", "You don't have permission to do so.")],
-        ephemeral: true,
-      });
-      return;
-    }
     if (subcommand === "ytkey") {
       const guildId = interaction.guildId || "";
       const key = interaction.options.get("key", true).value as string;

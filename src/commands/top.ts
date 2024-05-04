@@ -11,7 +11,7 @@ export default {
     .setDescription("Make a song to the top of the queue")
     .addStringOption((option) =>
       option.setName("name").setDescription("Song name").setRequired(true).setAutocomplete(true)
-    ),
+    ).setDMPermission(false),
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);

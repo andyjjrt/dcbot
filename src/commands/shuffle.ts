@@ -5,7 +5,7 @@ import { subscriptions } from "..";
 import { queueIo } from "../server/index";
 
 export default {
-  data: new SlashCommandBuilder().setName("shuffle").setDescription("Shuffle current queue"),
+  data: new SlashCommandBuilder().setName("shuffle").setDescription("Shuffle current queue").setDMPermission(false),
   async execute(interaction: CommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);

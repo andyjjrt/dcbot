@@ -20,7 +20,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("search")
     .setDescription("Search with Youtube API")
-    .addStringOption((option) => option.setName("keyword").setDescription("Keyword").setRequired(true)),
+    .addStringOption((option) => option.setName("keyword").setDescription("Keyword").setRequired(true)).setDMPermission(false),
   async execute(interaction: ChatInputCommandInteraction) {
     const commandChannel = interaction.channel;
     await interaction.deferReply()

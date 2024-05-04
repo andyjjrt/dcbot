@@ -25,7 +25,8 @@ export default {
       option.setName("url").setDescription("Youtube link or Spotify link").setRequired(true).setAutocomplete(true)
     )
     .addBooleanOption((option) => option.setName("top").setDescription("Force play top"))
-    .addBooleanOption((option) => option.setName("shuffle").setDescription("Shuffle list before queue")),
+    .addBooleanOption((option) => option.setName("shuffle").setDescription("Shuffle list before queue"))
+    .setDMPermission(false),
   async execute(interaction: ChatInputCommandInteraction) {
     const commandChannel = interaction.channel;
     if (!(commandChannel instanceof TextChannel)) {
@@ -48,11 +49,11 @@ export default {
         [Op.and]: [
           {
             userId: userId,
-          }, 
-          where(fn('lower', col('title')), {
+          },
+          where(fn("lower", col("title")), {
             [Op.like]: `%${query.toLowerCase()}%`,
           }),
-        ]
+        ],
       },
       limit: 10,
       order: [["time", "DESC"]],
@@ -64,8 +65,10 @@ export default {
       time: new Date(his.get("time") as string).getTime(),
       list: his.get("list") as boolean,
     }));
-    console.log(choices)
-    const filtered = choices.filter((choice) => choice.title.includes(focusedValue)).filter((choice) => choice.url.length < 100);
+    console.log(choices);
+    const filtered = choices
+      .filter((choice) => choice.title.includes(focusedValue))
+      .filter((choice) => choice.url.length < 100);
     await interaction.respond(
       filtered.map((choice) => ({
         name: `${choice.list ? "🎶" : "🎵"} ${choice.title}`,

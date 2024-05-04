@@ -5,7 +5,7 @@ import { ErrorEmbed, SuccessEmbed } from "../utils/Embed";
 import { Track } from "../utils/Track";
 
 export default {
-  data: new SlashCommandBuilder().setName("skip").setDescription("Skip current song"),
+  data: new SlashCommandBuilder().setName("skip").setDescription("Skip current song").setDMPermission(false),
   async execute(interaction: CommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);

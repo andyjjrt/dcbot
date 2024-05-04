@@ -6,7 +6,7 @@ import { subscriptions, client } from "..";
 const { WEBSITE_URL } = process.env;
 
 export default {
-  data: new SlashCommandBuilder().setName("queue").setDescription("Get current queue"),
+  data: new SlashCommandBuilder().setName("queue").setDescription("Get current queue").setDMPermission(false),
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);
