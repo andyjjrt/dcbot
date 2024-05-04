@@ -28,7 +28,8 @@ export const client = new Client(
   },
   CLIENT_ID,
   TOKEN,
-  path.join(__dirname, "commands")
+  path.join(__dirname, "commands"),
+  path.join(__dirname, "contextmenus")
 );
 
 export const subscriptions = new Map<Snowflake, MusicSubscription>();
@@ -50,7 +51,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       });
       return;
     }
-    const command = client.collection.get(interaction.commandName);
+    const command = client.commandCollection.get(interaction.commandName);
     if (!command) {
       logger.error(`No command matching ${interaction.commandName} was found.`);
       return;
@@ -84,13 +85,24 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
   } else if (interaction.isAutocomplete()) {
-    const command = client.collection.get(interaction.commandName);
+    const command = client.commandCollection.get(interaction.commandName);
     if (!command) {
       logger.error(`No command matching ${interaction.commandName} was found.`);
       return;
     }
     try {
       await command.autocomplete(interaction);
+    } catch (error) {
+      logger.error(error, "Unknown error");
+    }
+  } else if (interaction.isMessageContextMenuCommand()) {
+    const context = client.contextCollection.get(interaction.commandName);
+    if (!context) {
+      logger.error(`No command matching ${interaction.commandName} was found.`);
+      return;
+    }
+    try {
+      await context.execute(interaction);
     } catch (error) {
       logger.error(error, "Unknown error");
     }

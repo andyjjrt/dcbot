@@ -6,6 +6,7 @@ import {
   ChatInputCommandInteraction,
   MessageComponentInteraction,
   AutocompleteInteraction,
+  MessageContextMenuCommandInteraction,
 } from "discord.js";
 import { joinVoiceChannel, entersState, VoiceConnectionStatus } from "@discordjs/voice";
 import { Op, where, fn, col } from "sequelize";
@@ -88,10 +89,10 @@ export default {
  *
  */
 export const play = async (
-  interaction: ChatInputCommandInteraction | MessageComponentInteraction,
+  interaction: ChatInputCommandInteraction | MessageComponentInteraction | MessageContextMenuCommandInteraction,
   url: string,
-  shuffle: boolean,
-  top: boolean
+  shuffle: boolean = false,
+  top: boolean = false
 ) => {
   let subscription = subscriptions.get(interaction.guildId || "");
   const commandChannel = interaction.channel;

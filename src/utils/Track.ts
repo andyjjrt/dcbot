@@ -30,7 +30,7 @@ limitations under the License.
 
 import fs, { createReadStream } from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice";
-import { APIUser, ChatInputCommandInteraction, MessageComponentInteraction, User } from "discord.js";
+import { APIUser, ChatInputCommandInteraction, MessageComponentInteraction, MessageContextMenuCommandInteraction, User } from "discord.js";
 import { InfoEmbed } from "./Embed";
 import { getVideoDurationInSeconds } from "get-video-duration";
 import { getPlayListMetaData, getPlayListUrl, getTrackMetaData, getTrackUrl } from "./SpotifyDown";
@@ -112,7 +112,7 @@ export class Track implements TrackInterface {
   public static async from(
     url: string,
     methods: Pick<Track, "onStart" | "onError">,
-    interaction: ChatInputCommandInteraction | MessageComponentInteraction
+    interaction: ChatInputCommandInteraction | MessageComponentInteraction | MessageContextMenuCommandInteraction
   ): Promise<{
     title: string;
     url: string;
