@@ -60,12 +60,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
       logger.info(
         {
           type: "command",
-          guild: interaction.guild!.name,
-          guildId: interaction.guild!.id,
-          channel: (interaction.channel as TextChannel)!.name,
-          channelId: (interaction.channel as TextChannel)!.id,
-          user: interaction.member!.user.username,
-          userId: interaction.member!.user.id,
+          guild: interaction.guild?.name || null,
+          guildId: interaction.guild?.id || null,
+          channel: (interaction.channel as TextChannel)?.name || null,
+          channelId: (interaction.channel as TextChannel)?.id || null,
+          user: interaction.user.username,
+          userId: interaction.user.id,
         },
         `/${interaction.commandName}`
       );
@@ -198,7 +198,9 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
   }
 });
 
-client.login(TOKEN).then();
+client.login(TOKEN).then(() => {
+  client.refreshCommands();
+});
 
 import "./server/index";
 
