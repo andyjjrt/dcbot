@@ -1,7 +1,7 @@
 import { ErrorEmbed, InfoEmbed, SuccessEmbed } from "./../utils/Embed";
 import { SlashCommandBuilder, PermissionsBitField, ChatInputCommandInteraction } from "discord.js";
 import { client } from "../index";
-import { Record, Setting } from "../utils/db/schema";
+import { Record } from "../utils/db/schema";
 import { exec } from "child_process";
 import { request } from "undici";
 const { MUSIC_DIR, SERVER_IP } = process.env;
@@ -31,22 +31,12 @@ export default {
     .addSubcommand((command) => command.setName("refresh").setDescription("Refresh commands"))
     .addSubcommand((command) => command.setName("info").setDescription("Get info"))
     .addSubcommand((command) => command.setName("records").setDescription("Get recent records"))
-    .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator).setDMPermission(false),
+    .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
+    .setDMPermission(false),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand(true);
     await interaction.deferReply({ ephemeral: true });
-    if (subcommand === "ytkey") {
-      const guildId = interaction.guildId || "";
-      const key = interaction.options.get("key", true).value as string;
-      await Setting.upsert({
-        guildId: guildId,
-        ytKey: key,
-      });
-      await interaction.followUp({
-        embeds: [new SuccessEmbed(interaction.client.user, "Success", `ytKet changed to || \`${key}\` ||`)],
-        ephemeral: true,
-      });
-    } else if (subcommand === "refresh") {
+    if (subcommand === "refresh") {
       const commands = await client.refreshCommands();
       await interaction.followUp({
         embeds: [new SuccessEmbed(interaction.client.user, "Success", `${commands} commands refreshed`)],
@@ -58,7 +48,7 @@ export default {
           resolve(stdout);
         });
       });
-      const quota = await request(`http://quota.nccu.edu.tw/Quota?ip=${SERVER_IP}`).then(res => res.body.json())
+      const quota = await request(`http://quota.nccu.edu.tw/Quota?ip=${SERVER_IP}`).then((res) => res.body.json());
       const startUsage = process.cpuUsage();
       const now = Date.now();
       while (Date.now() - now < 500);

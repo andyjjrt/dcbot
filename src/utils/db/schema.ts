@@ -1,5 +1,5 @@
 import Sequelize from "sequelize";
-import { history, announce, setting, record } from "./index";
+import { history, permissions, record } from "./index";
 
 export const History = history.define("history", {
   time: Sequelize.TIME,
@@ -20,19 +20,11 @@ export const Record = record.define("record", {
   url: Sequelize.STRING,
 });
 
-export const Setting = setting.define("setting", {
+export const Permissions = permissions.define("permissions", {
   guildId: {
     type: Sequelize.STRING,
     primaryKey: true,
   },
-  ytKey: Sequelize.STRING,
-});
-
-export const Announce = announce.define("announce", {
-  guildId: Sequelize.STRING,
-  title: {
-    type: Sequelize.STRING,
-    primaryKey: true,
-  },
-  url: Sequelize.STRING,
+  ai: Sequelize.BOOLEAN,
+  search: Sequelize.BOOLEAN
 });

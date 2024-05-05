@@ -1,29 +1,26 @@
-import { ErrorEmbed, InfoEmbed, SuccessEmbed } from "../utils/Embed";
+import { ErrorEmbed, InfoEmbed } from "../utils/Embed";
 import {
   SlashCommandBuilder,
-  CommandInteraction,
   ActionRowBuilder,
   StringSelectMenuBuilder,
-  time,
   TextChannel,
-  CacheType,
-  StringSelectMenuInteraction,
   ComponentType,
   ChatInputCommandInteraction,
 } from "discord.js";
-import { client } from "../index";
-import { Setting } from "../utils/db/schema";
 import { play } from "./play";
+
+const { YT_API_KEY } = process.env;
 
 export default {
   cooldown: 10,
   data: new SlashCommandBuilder()
     .setName("search")
     .setDescription("Search with Youtube API")
-    .addStringOption((option) => option.setName("keyword").setDescription("Keyword").setRequired(true)).setDMPermission(false),
+    .addStringOption((option) => option.setName("keyword").setDescription("Keyword").setRequired(true))
+    .setDMPermission(false),
   async execute(interaction: ChatInputCommandInteraction) {
     const commandChannel = interaction.channel;
-    await interaction.deferReply()
+    await interaction.deferReply();
     if (!(commandChannel instanceof TextChannel)) {
       await interaction.reply({
         embeds: [new ErrorEmbed(interaction.client.user, "Error", "Please use command in a **Text Channel**")],
@@ -31,9 +28,6 @@ export default {
       return;
     }
     const guildId = interaction.guildId!;
-    const setting = await Setting.findOne({ where: { guildId: guildId } });
-    if (!setting) throw new Error("Please setup your server first");
-    const YT_API_KEY = setting?.get("ytKey") as string;
     const keyword = interaction.options.get("keyword", true).value as string;
     const response = await fetch(
       `https://youtube.googleapis.com/youtube/v3/search?q=${keyword}&key=${YT_API_KEY}&type=video&part=snippet&maxResults=10`

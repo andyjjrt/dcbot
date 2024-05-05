@@ -18,24 +18,16 @@ export const record = new Sequelize("record", "user", "password", {
   storage: path.join(DB_DIR as string, "record.sqlite"),
 });
 
-export const setting = new Sequelize("settting", "user", "password", {
+export const permissions = new Sequelize("permissions", "user", "password", {
   host: "localhost",
   dialect: "sqlite",
   logging: false,
   // SQLite only
-  storage: path.join(DB_DIR as string, "setting.sqlite"),
-});
-
-export const announce = new Sequelize("announce", "user", "password", {
-  host: "localhost",
-  dialect: "sqlite",
-  logging: false,
-  // SQLite only
-  storage: path.join(DB_DIR as string, "announce.sqlite"),
+  storage: path.join(DB_DIR as string, "permissions.sqlite"),
 });
 
 export const initDB = () => {
-  return Promise.all([history, record, announce, setting].map((db) => db.sync()));
+  return Promise.all([history, record, permissions].map((db) => db.sync()));
 };
 
 export default history;
