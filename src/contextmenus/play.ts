@@ -4,7 +4,7 @@ import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, Applic
 
 export default {
   data: new ContextMenuCommandBuilder()
-    .setName("Play")
+    .setName("Play this Youtube/Spotify song")
     .setType(ApplicationCommandType.Message),
   async execute(interaction: MessageContextMenuCommandInteraction) {
     await interaction.deferReply();
