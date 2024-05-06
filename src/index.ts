@@ -12,7 +12,7 @@ import { logger } from "./utils/log";
 import { queueIo } from "./server/index";
 const { TOKEN, CLIENT_ID, BANNED_LIST } = process.env;
 
-logger.info("starting...");
+logger.info("Starting...");
 
 // Create a new client instance
 export const client = new Client(
@@ -211,7 +211,7 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
 });
 
 client.login(TOKEN).then(() => {
-  client.refreshCommands();
+  return client.refreshCommands();
 });
 
 import "./server/index";

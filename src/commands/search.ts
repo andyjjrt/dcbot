@@ -6,6 +6,7 @@ import {
   TextChannel,
   ComponentType,
   ChatInputCommandInteraction,
+  MessageContextMenuCommandInteraction,
 } from "discord.js";
 import { play } from "./play";
 
@@ -18,7 +19,8 @@ export default {
     .setDescription("Search with Youtube API")
     .addStringOption((option) => option.setName("keyword").setDescription("Keyword").setRequired(true))
     .setDMPermission(false),
-  async execute(interaction: ChatInputCommandInteraction) {
+  allowGuilds: ["690741342191616071", "701316013672890408", "582920350506156032", "1189568823498657833"],
+  async execute(interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction) {
     const commandChannel = interaction.channel;
     await interaction.deferReply();
     if (!(commandChannel instanceof TextChannel)) {
@@ -28,7 +30,10 @@ export default {
       return;
     }
     const guildId = interaction.guildId!;
-    const keyword = interaction.options.get("keyword", true).value as string;
+    const keyword =
+      interaction instanceof MessageContextMenuCommandInteraction
+        ? interaction.targetMessage
+        : (interaction.options.get("keyword", true).value as string);
     const response = await fetch(
       `https://youtube.googleapis.com/youtube/v3/search?q=${keyword}&key=${YT_API_KEY}&type=video&part=snippet&maxResults=10`
     );
