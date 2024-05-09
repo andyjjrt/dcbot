@@ -1,4 +1,4 @@
-import { ErrorEmbed, InfoEmbed, SuccessEmbed } from "./../utils/Embed";
+import { ErrorEmbed, InfoEmbed, SuccessEmbed } from "../utils/Embed";
 import { SlashCommandBuilder, PermissionsBitField, ChatInputCommandInteraction } from "discord.js";
 import { client } from "../index";
 import { Record } from "../utils/db/schema";
