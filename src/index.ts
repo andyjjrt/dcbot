@@ -40,20 +40,26 @@ client.once(Events.ClientReady, (c) => {
     activities: [{ name: "/play", type: ActivityType.Listening }],
     status: "online",
   });
-  initDB().then((dbs) => logger.info(`${dbs.length} db synced`));
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isChatInputCommand()) {
-    if ((BANNED_LIST?.split(",") || []).indexOf(interaction.user.id) >= 0) {
-      await interaction.reply({
-        embeds: [new ErrorEmbed(interaction.client.user, "Error", "You're banned")],
-      });
-      return;
-    }
     const command = client.commandCollection.get(interaction.commandName);
     if (!command) {
       logger.error(`No command matching ${interaction.commandName} was found.`);
+      return;
+    }
+    if (command.allowGuilds && command.allowGuilds.indexOf(interaction.guildId) < 0) {
+      await interaction.reply({
+        embeds: [
+          new ErrorEmbed(
+            interaction.client.user,
+            "Error",
+            "This command is not allowed on this server, please contact bot owner."
+          ),
+        ],
+        ephemeral: true,
+      });
       return;
     }
     try {
@@ -99,6 +105,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const context = client.contextCollection.get(interaction.commandName);
     if (!context) {
       logger.error(`No command matching ${interaction.commandName} was found.`);
+      return;
+    }
+    if (context.allowGuilds && context.allowGuilds.indexOf(interaction.guildId) < 0) {
+      await interaction.reply({
+        embeds: [
+          new ErrorEmbed(
+            interaction.client.user,
+            "Error",
+            "This command is not allowed on this server, please contact bot owner."
+          ),
+        ],
+        ephemeral: true,
+      });
       return;
     }
     try {
@@ -210,9 +229,15 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
   }
 });
 
-client.login(TOKEN).then(() => {
-  return client.refreshCommands();
-});
+client
+  .login(TOKEN)
+  .then(() => {
+    return initDB();
+  })
+  .then((dbs) => {
+    logger.info(`Synced ${dbs.length} dbs`);
+    return client.refreshCommands();
+  });
 
 import "./server/index";
 

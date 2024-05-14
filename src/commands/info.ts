@@ -36,6 +36,14 @@ export default {
       embeds: [
         new InfoEmbed(interaction.client.user, ":man_shrugging:  Bump!", "")
           .addFields({
+            name: "Version",
+            value: require("../../package.json").version,
+          })
+          .addFields({
+            name: "Discord.js version",
+            value: require("discord.js/package.json").version,
+          })
+          .addFields({
             name: "Buffer",
             value: `Local music buffer folder size is ${(res as string).split("\t")[0]}`,
           })
@@ -50,10 +58,6 @@ export default {
           .addFields({
             name: "Quota",
             value: `${((quota as any).subscriber[0].outgoingBytes / 1000000000).toFixed(3)} GB`,
-          })
-          .addFields({
-            name: "Version",
-            value: require("discord.js/package.json").version,
           })
           .addFields({
             name: "Author",

@@ -66,7 +66,6 @@ export default {
       time: new Date(his.get("time") as string).getTime(),
       list: his.get("list") as boolean,
     }));
-    console.log(choices);
     const filtered = choices
       .filter((choice) => choice.title.includes(focusedValue))
       .filter((choice) => choice.url.length < 100);

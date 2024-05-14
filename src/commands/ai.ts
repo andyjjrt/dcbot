@@ -1,5 +1,10 @@
-import { AIEmbed } from "./../utils/Embed";
-import { SlashCommandBuilder, CommandInteraction, AutocompleteInteraction } from "discord.js";
+import { AIEmbed, ErrorEmbed } from "./../utils/Embed";
+import {
+  SlashCommandBuilder,
+  CommandInteraction,
+  AutocompleteInteraction,
+  MessageContextMenuCommandInteraction,
+} from "discord.js";
 import { client, subscriptions } from "../index";
 
 import ollama from "ollama";
@@ -12,22 +17,33 @@ export default {
     .addStringOption((option) => option.setName("question").setDescription("Question").setRequired(true))
     .addStringOption((option) => option.setName("model").setDescription("Model Name").setAutocomplete(true)),
   allowGuilds: ["690741342191616071", "701316013672890408", "582920350506156032", "1189568823498657833"],
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: CommandInteraction | MessageContextMenuCommandInteraction) {
     await interaction.deferReply();
-    const question = interaction.options.get("question", true).value as string;
-    const modelName = interaction.options.get("model")?.value as string | undefined;
-    const response = await ollama.chat({
-      model: modelName || OLLAMA_MODEL || "",
-      messages: [{ role: "user", content: question }],
-      options: {
-        stop: ["<|eot_id|>"],
-      },
-    });
+    const question =
+      interaction instanceof MessageContextMenuCommandInteraction
+        ? interaction.targetMessage
+        : interaction.options.get("question", true).value;
+    const modelName =
+      interaction instanceof MessageContextMenuCommandInteraction
+        ? null
+        : (interaction.options.get("model")?.value as string | undefined);
+    try {
+      const response = await ollama.chat({
+        model: modelName || OLLAMA_MODEL || "",
+        messages: [{ role: "user", content: `${question}` }],
+        options: {
+          stop: ["<|eot_id|>"],
+        },
+      });
 
-    await interaction.followUp({
-      embeds: [new AIEmbed(interaction.client.user, question, response)],
-    });
-    
+      await interaction.followUp({
+        embeds: [new AIEmbed(interaction.client.user, `${question}`, response)],
+      });
+    } catch (error) {
+      await interaction.followUp({
+        embeds: [new ErrorEmbed(interaction.client.user, "Error", (error as Error).message)],
+      });
+    }
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const models = (await ollama.list()).models;

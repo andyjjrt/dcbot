@@ -85,7 +85,7 @@ export class AIEmbed extends EmbedBuilder {
       .setDescription(`Q: ${question}\nA: ${response.message.content}`)
       .setTimestamp()
       .setFooter({
-        text: `${response.model} | ${(response.eval_count * 1000000000 / response.eval_duration).toFixed(2)} tps`,
+        text: `${response.model} | ${((response.eval_count * 1000000000) / response.eval_duration).toFixed(2)} tps`,
       });
   }
 }
