@@ -123,7 +123,6 @@ const initQueueSocket = async () => {
     },
   }).then((res) => {
     queueId.value = res.data.data.queueId;
-    console.log(res.data.data.queueId, route.params.guildId);
     queueSocket.value.emit("enter", {
       guildId: route.params.guildId,
       queueId: res.data.data.queueId,

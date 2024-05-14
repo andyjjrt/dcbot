@@ -182,8 +182,6 @@ client.on(Events.VoiceStateUpdate, (oldState, newState) => {
       newState.member!.user.id !== client.user.id &&
       newState.channelId === subscription.voiceConnection.joinConfig.channelId
     ) {
-      console.log(newState.channelId, subscription.voiceConnection.joinConfig.channelId);
-
       if (subscription.leaveTimer) {
         clearTimeout(subscription.leaveTimer);
         subscription.leaveTimer = null;
