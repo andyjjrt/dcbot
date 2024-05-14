@@ -7,6 +7,7 @@ import {
   MessageComponentInteraction,
   AutocompleteInteraction,
   MessageContextMenuCommandInteraction,
+  REST,
 } from "discord.js";
 import { joinVoiceChannel, entersState, VoiceConnectionStatus } from "@discordjs/voice";
 import { Op, where, fn, col } from "sequelize";
@@ -150,6 +151,9 @@ export const play = async (
         onStart(metaData) {
           subscription!.logChannel?.send({
             embeds: [new PlayingEmbed(interaction.member!.user, metaData).setThumbnail(metaData.thumbnail)],
+          });
+          client.rest.put(`/channels/${subscription!.voiceConnection.joinConfig.channelId}/voice-status`, {
+            body: { status: `:musical_note:  ${metaData.title}-${metaData.channel}` },
           });
         },
         onError(error) {

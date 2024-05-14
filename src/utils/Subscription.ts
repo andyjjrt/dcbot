@@ -85,9 +85,7 @@ export class MusicSubscription {
     this.voiceConnection.on("stateChange", async (_: VoiceConnectionState, newState: VoiceConnectionState) => {
       const guildId = voiceConnection.joinConfig.guildId;
       if (newState.status === VoiceConnectionStatus.Disconnected) {
-        queueIo.to(this.id).disconnectSockets();
-        this.voiceConnection.destroy();
-        subscriptions.delete(guildId);
+        this.destroy();
       } else if (newState.status === VoiceConnectionStatus.Destroyed) {
         this.stop();
       } else if (
@@ -99,9 +97,7 @@ export class MusicSubscription {
           await entersState(this.voiceConnection, VoiceConnectionStatus.Ready, 20_000);
         } catch {
           if (this.voiceConnection.state.status !== VoiceConnectionStatus.Destroyed) {
-            queueIo.to(this.id).disconnectSockets();
-            this.voiceConnection.destroy();
-            subscriptions.delete(guildId);
+            this.destroy();
           }
         } finally {
           this.readyLock = false;
@@ -190,6 +186,19 @@ export class MusicSubscription {
     };
   }
 
+  public async destroy(clearStatus?: boolean) {
+    if (clearStatus) {
+      await client.rest.put(`/channels/${this.voiceConnection.joinConfig.channelId}/voice-status`, {
+        body: {
+          status: " ",
+        },
+      });
+    }
+    queueIo.to(this.id).disconnectSockets();
+    this.voiceConnection.destroy();
+    subscriptions.delete(this.voiceConnection.joinConfig.guildId);
+  }
+
   /**
    * Attempts to play a Track from the queue.
    */
@@ -200,9 +209,7 @@ export class MusicSubscription {
       this.commandChannel.send({
         embeds: [new InfoEmbed(client.user, ":wave:  Leaving", "bye")],
       });
-      queueIo.to(this.id).disconnectSockets();
-      this.voiceConnection.destroy();
-      subscriptions.delete(this.voiceConnection.joinConfig.guildId);
+      this.destroy(true);
       return;
     }
 

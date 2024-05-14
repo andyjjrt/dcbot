@@ -11,10 +11,7 @@ export default {
     if (subscription) {
       if (interaction.member instanceof GuildMember && interaction.member.voice.channel) {
         if (subscription.voiceConnection.joinConfig.channelId === interaction.member.voice.channelId) {
-          subscription.queueMessage.destroy();
-          subscription.voiceConnection.destroy();
-          queueIo.to(subscription.id).disconnectSockets();
-          subscriptions.delete(interaction.guildId);
+          subscription.destroy(true);
           await interaction.reply({
             embeds: [new InfoEmbed(interaction.client.user, ":wave:  Left", "I'm right.")],
           });

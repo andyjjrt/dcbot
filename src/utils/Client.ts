@@ -6,6 +6,7 @@ import { logger } from "./log";
 export default class MyClient extends Client<true> {
   commandCollection: Collection<string, any>;
   contextCollection: Collection<string, any>;
+  rest: REST;
   private _clientId: string;
   private _token: string;
   constructor(options: ClientOptions, clientId = "", token = "", commandsPath = "", contextsPath = "") {
@@ -14,6 +15,7 @@ export default class MyClient extends Client<true> {
     this.contextCollection = new Collection();
     this._clientId = clientId;
     this._token = token;
+    this.rest = new REST({ version: "10" }).setToken(this._token);
     const commandFiles = readdirSync(commandsPath).filter(
       (file) => (file.endsWith(".ts") || file.endsWith(".js")) && !file.includes("disable")
     );
@@ -31,9 +33,8 @@ export default class MyClient extends Client<true> {
   }
 
   public async refreshCommands() {
-    const rest = new REST({ version: "10" }).setToken(this._token);
     try {
-      const data = (await rest.put(Routes.applicationCommands(this._clientId), {
+      const data = (await this.rest.put(Routes.applicationCommands(this._clientId), {
         body: [
           ...this.commandCollection.map((command) => command.data.toJSON()),
           ...this.contextCollection.map((command) => command.data.toJSON()),

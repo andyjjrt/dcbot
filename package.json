@@ -1,6 +1,6 @@
 {
   "name": "dcbot",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "exports": "./dist/index.js",
