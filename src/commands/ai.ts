@@ -34,6 +34,7 @@ export default {
         options: {
           stop: ["<|eot_id|>"],
         },
+        keep_alive: 0,
       });
 
       await interaction.followUp({
