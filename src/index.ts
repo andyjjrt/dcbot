@@ -10,7 +10,8 @@ import { initDB } from "./utils/db";
 import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import { logger } from "./utils/log";
 import { queueIo } from "./server/index";
-const { TOKEN, CLIENT_ID, BANNED_LIST } = process.env;
+import { replyConversation } from "./commands/chat";
+const { TOKEN, CLIENT_ID, BANNED_LIST, NODE_ENV } = process.env;
 
 logger.info("Starting...");
 
@@ -36,10 +37,17 @@ export const subscriptions = new Map<Snowflake, MusicSubscription>();
 
 client.once(Events.ClientReady, (c) => {
   logger.info(`Logged in as ${c.user.tag}`);
-  c.user.setPresence({
-    activities: [{ name: "/play", type: ActivityType.Listening }],
-    status: "online",
-  });
+  if (NODE_ENV === "development") {
+    c.user.setPresence({
+      activities: [{ name: "Under Heavy Development", type: ActivityType.Custom }],
+      status: "dnd",
+    });
+  } else {
+    c.user.setPresence({
+      activities: [{ name: "/play", type: ActivityType.Listening }],
+      status: "online",
+    });
+  }
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -129,19 +137,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 client.on(Events.MessageCreate, async (message) => {
-  if (message.author.globalName && message.content.length > 0) {
-    logger.info(
-      {
-        type: "message",
-        guild: message.guild!.name,
-        guildId: message.guild!.id,
-        channel: (message.channel as TextChannel).name,
-        channelId: (message.channel as TextChannel).id,
-        user: message.author.username,
-        userId: message.author.id,
-      },
-      message.content
-    );
+  if (message.channel.isThread()) {
+    replyConversation(message);
   }
 });
 
