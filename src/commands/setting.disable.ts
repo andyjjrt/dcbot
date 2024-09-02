@@ -48,8 +48,6 @@ export default {
           resolve(stdout);
         });
       });
-      const quota = await request(`http://quota.nccu.edu.tw/Quota?ip=${SERVER_IP}`).then((res) => res.body.json());
-      const startUsage = process.cpuUsage();
       const now = Date.now();
       while (Date.now() - now < 500);
       await interaction.followUp({
@@ -68,10 +66,6 @@ export default {
                 Resident Set Size: ${formatBytes(process.memoryUsage().rss)}
                 Array Buffers: ${formatBytes(process.memoryUsage().arrayBuffers)}
                 `,
-            })
-            .addFields({
-              name: "Quota",
-              value: `${((quota as any).subscriber[0].outgoingBytes / 1000000000).toFixed(3)} GB`,
             })
             .addFields({
               name: "Version",

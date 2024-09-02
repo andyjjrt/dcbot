@@ -2,7 +2,7 @@ import { InfoEmbed } from "./../utils/Embed";
 import { SlashCommandBuilder, PermissionsBitField, ChatInputCommandInteraction } from "discord.js";
 import { exec } from "child_process";
 import { request } from "undici";
-const { MUSIC_DIR, SERVER_IP } = process.env;
+const { MUSIC_DIR } = process.env;
 
 function formatBytes(bytes: number, decimals = 2) {
   if (!+bytes) return "0 Bytes";
@@ -29,7 +29,6 @@ export default {
         resolve(stdout);
       });
     });
-    const quota = await request(`http://quota.nccu.edu.tw/Quota?ip=${SERVER_IP}`).then((res) => res.body.json());
     const now = Date.now();
     while (Date.now() - now < 500);
     await interaction.followUp({
@@ -54,10 +53,6 @@ export default {
               Resident Set Size: ${formatBytes(process.memoryUsage().rss)}
               Array Buffers: ${formatBytes(process.memoryUsage().arrayBuffers)}
               `,
-          })
-          .addFields({
-            name: "Quota",
-            value: `${((quota as any).subscriber[0].outgoingBytes / 1000000000).toFixed(3)} GB`,
           })
           .addFields({
             name: "Author",

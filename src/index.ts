@@ -11,7 +11,7 @@ import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import { logger } from "./utils/log";
 import { queueIo } from "./server/index";
 import { replyConversation } from "./commands/chat";
-const { TOKEN, CLIENT_ID, BANNED_LIST, NODE_ENV } = process.env;
+const { TOKEN, CLIENT_ID, NODE_ENV } = process.env;
 
 logger.info("Starting...");
 

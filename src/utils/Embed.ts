@@ -1,7 +1,6 @@
 import { EmbedBuilder, Client, User, APIUser, ClientUser } from "discord.js";
 import { TrackMetadata } from "../types/Track";
 import { ChatResponse } from "ollama";
-const { OLLAMA_MODEL } = process.env;
 
 export class SuccessEmbed extends EmbedBuilder {
   constructor(user: ClientUser | User | APIUser, title: string, description: string) {

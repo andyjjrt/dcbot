@@ -3,7 +3,6 @@ import { AudioPlayerStatus } from "@discordjs/voice";
 import { SlashCommandBuilder, ChatInputCommandInteraction, AutocompleteInteraction } from "discord.js";
 import { subscriptions, client } from "..";
 
-const { WEBSITE_URL } = process.env;
 
 export default {
   data: new SlashCommandBuilder()
