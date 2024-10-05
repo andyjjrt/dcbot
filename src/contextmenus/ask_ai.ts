@@ -2,7 +2,7 @@ import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, Applic
 import ai from "../commands/ai";
 
 export default {
-  data: new ContextMenuCommandBuilder().setName("Ask AI").setType(2),
+  data: new ContextMenuCommandBuilder().setName("Ask AI").setType(ApplicationCommandType.Message),
   featureId: "ai",
   async execute(interaction: MessageContextMenuCommandInteraction) {
     await ai.execute(interaction);
