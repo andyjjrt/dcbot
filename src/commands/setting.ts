@@ -2,7 +2,7 @@ import { ErrorEmbed, InfoEmbed, SuccessEmbed } from "../utils/Embed";
 import { SlashCommandBuilder, PermissionsBitField, ChatInputCommandInteraction } from "discord.js";
 import { client } from "../index";
 import { Permissions } from "utils/db/schema";
-const { MUSIC_DIR, SERVER_IP } = process.env;
+const { OWNER_ID } = process.env;
 
 export default {
   data: new SlashCommandBuilder()
@@ -27,6 +27,13 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand(true);
     await interaction.deferReply({ ephemeral: true });
+    if (OWNER_ID !== interaction.user.id) {
+      await interaction.followUp({
+        embeds: [new ErrorEmbed(interaction.client.user, "Error", `You're not bot owner.`)],
+        ephemeral: true,
+      });
+      return;
+    }
     if (subcommand === "refresh") {
       const commands = await client.refreshCommands();
       await interaction.followUp({

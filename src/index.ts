@@ -123,18 +123,26 @@ client.on(Events.InteractionCreate, async (interaction) => {
       logger.error(`No command matching ${interaction.commandName} was found.`);
       return;
     }
-    if (context.allowGuilds && context.allowGuilds.indexOf(interaction.guildId) < 0) {
-      await interaction.reply({
-        embeds: [
-          new ErrorEmbed(
-            interaction.client.user,
-            "Error",
-            "This command is not allowed on this server, please contact bot owner."
-          ),
-        ],
-        ephemeral: true,
+    if (context.featureId) {
+      const permission = await Permissions.findOne({
+        where: {
+          guildId: interaction.guildId,
+          featureId: context.featureId,
+        },
       });
-      return;
+      if (!permission) {
+        await interaction.reply({
+          embeds: [
+            new ErrorEmbed(
+              interaction.client.user,
+              "Error",
+              "This command is not allowed on this server, please contact bot owner."
+            ),
+          ],
+          ephemeral: true,
+        });
+        return;
+      }
     }
     try {
       await context.execute(interaction);
