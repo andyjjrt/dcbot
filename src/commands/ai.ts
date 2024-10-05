@@ -5,7 +5,6 @@ import {
   AutocompleteInteraction,
   MessageContextMenuCommandInteraction,
 } from "discord.js";
-import { client, subscriptions } from "../index";
 
 import { Ollama } from "ollama";
 const { OLLAMA_URL, OLLAMA_MODEL } = process.env;
@@ -16,7 +15,7 @@ export default {
     .setDescription("Ask ai something")
     .addStringOption((option) => option.setName("question").setDescription("Question").setRequired(true))
     .addStringOption((option) => option.setName("model").setDescription("Model Name").setAutocomplete(true)),
-  allowGuilds: ["690741342191616071", "701316013672890408", "582920350506156032", "1189568823498657833"],
+  featureId: "ai",
   async execute(interaction: CommandInteraction | MessageContextMenuCommandInteraction) {
     await interaction.deferReply();
     const question =

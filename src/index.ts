@@ -57,18 +57,26 @@ client.on(Events.InteractionCreate, async (interaction) => {
       logger.error(`No command matching ${interaction.commandName} was found.`);
       return;
     }
-    if (command.allowGuilds && command.allowGuilds.indexOf(interaction.guildId) < 0) {
-      await interaction.reply({
-        embeds: [
-          new ErrorEmbed(
-            interaction.client.user,
-            "Error",
-            "This command is not allowed on this server, please contact bot owner."
-          ),
-        ],
-        ephemeral: true,
+    if (command.featureId) {
+      const permission = await Permissions.findOne({
+        where: {
+          guildId: interaction.guildId,
+          featureId: command.featureId,
+        },
       });
-      return;
+      if (!permission) {
+        await interaction.reply({
+          embeds: [
+            new ErrorEmbed(
+              interaction.client.user,
+              "Error",
+              "This command is not allowed on this server, please contact bot owner."
+            ),
+          ],
+          ephemeral: true,
+        });
+        return;
+      }
     }
     try {
       await command.execute(interaction);
@@ -235,5 +243,7 @@ client
   });
 
 import "./server/index";
+import { Permissions } from "utils/db/schema";
+import { P } from "pino";
 
 export default client;

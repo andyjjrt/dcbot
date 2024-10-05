@@ -25,6 +25,5 @@ export const Permissions = permissions.define("permissions", {
     type: Sequelize.STRING,
     primaryKey: true,
   },
-  ai: Sequelize.BOOLEAN,
-  search: Sequelize.BOOLEAN,
+  featureId: Sequelize.STRING
 });

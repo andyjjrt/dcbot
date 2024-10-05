@@ -25,7 +25,7 @@ export default {
         .addStringOption((option) => option.setName("model").setDescription("Model Name").setAutocomplete(true))
     )
     .addSubcommand((subcommand) => subcommand.setName("end").setDescription("End a chat")),
-  allowGuilds: ["690741342191616071", "701316013672890408", "582920350506156032", "1189568823498657833"],
+  featureId: "ai",
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand(true);
     const modelName = (interaction.options.get("model")?.value as string | undefined) || OLLAMA_MODEL || "";

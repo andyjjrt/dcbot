@@ -19,7 +19,7 @@ export default {
     .setDescription("Search with Youtube API")
     .addStringOption((option) => option.setName("keyword").setDescription("Keyword").setRequired(true))
     .setDMPermission(false),
-  allowGuilds: ["690741342191616071", "701316013672890408", "582920350506156032", "1189568823498657833"],
+  featureId: "YTsearch",
   async execute(interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction) {
     const commandChannel = interaction.channel;
     await interaction.deferReply();
