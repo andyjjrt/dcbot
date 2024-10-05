@@ -4,7 +4,7 @@ import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, Applic
 import search from "../commands/search";
 
 export default {
-  data: new ContextMenuCommandBuilder().setName("Search in Youtube").setType(ApplicationCommandType.Message),
+  data: new ContextMenuCommandBuilder().setName("Search in Youtube").setType(2),
   allowGuilds: ["690741342191616071", "701316013672890408", "582920350506156032", "1189568823498657833"],
   async execute(interaction: MessageContextMenuCommandInteraction) {
     await search.execute(interaction);
