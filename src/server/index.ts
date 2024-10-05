@@ -33,6 +33,7 @@ app.get("/api/song/:id", (req, res) => {
       "Accept-Ranges": "bytes",
     });
     const readStream = fs.createReadStream(filePath);
+    // @ts-ignore
     readStream.pipe(res);
   }
 });
