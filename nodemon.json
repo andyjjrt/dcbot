@@ -1,11 +1,7 @@
 {
-  "watch": [
-    "src"
-  ],
+  "watch": ["src"],
   "ext": "ts,json",
-  "ignore": [
-    "src/**/*.spec.ts"
-  ],
+  "ignore": ["src/**/*.spec.ts"],
   "exec": "node --loader ts-node/esm ./src/index.ts",
   "env": {
     "NODE_ENV": "development"

@@ -3,14 +3,14 @@ import { AudioPlayerStatus } from "@discordjs/voice";
 import { SlashCommandBuilder, ChatInputCommandInteraction, AutocompleteInteraction } from "discord.js";
 import { subscriptions, client } from "..";
 
-
 export default {
   data: new SlashCommandBuilder()
     .setName("top")
     .setDescription("Make a song to the top of the queue")
     .addStringOption((option) =>
       option.setName("name").setDescription("Song name").setRequired(true).setAutocomplete(true)
-    ).setDMPermission(false),
+    )
+    .setDMPermission(false),
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.isCommand() || !interaction.guildId) return;
     let subscription = subscriptions.get(interaction.guildId);
@@ -26,7 +26,7 @@ export default {
       await interaction.reply({
         embeds: [new ErrorEmbed(interaction.client.user, "Error", "No such song in this queue")],
       });
-      return
+      return;
     }
     subscription.queue.sort((a, b) => (a.metadata.url === query ? -1 : b.metadata.url === query ? 1 : 0));
     await interaction.reply({

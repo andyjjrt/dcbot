@@ -44,6 +44,7 @@ WEBSITE_URL=<WEBSITE_URL>
 - `WEBSITE_URL`: Web server url, show in queue message.
 
 ## Optional varialbes
+
 - Some of the deatures can't use without them, but the bot will still work
   - `HOWHOW_DIR`: Directory to store how-how source.
     > Please ensure `HOWHOW_DIR` has a `result` sub-folder. Please download all mp3 files in [here](https://github.com/EarlySpringCommitee/HowHow-parser/tree/master/result/mp3)

@@ -9,6 +9,6 @@ export default {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     await interaction.deferReply();
     const url = interaction.targetMessage;
-    await play(interaction, `${url}`)
-  }
+    await play(interaction, `${url}`);
+  },
 };

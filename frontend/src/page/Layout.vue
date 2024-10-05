@@ -9,15 +9,13 @@
       <div class="grow">
         <RouterView />
       </div>
-      
     </div>
-    
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
-import LeftNav from "../components/LeftNav.vue"
+import LeftNav from "../components/LeftNav.vue";
 import { useUserStore } from "../store/user";
 
 const { init } = useUserStore();

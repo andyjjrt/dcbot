@@ -25,7 +25,7 @@ export interface TrackMetadata {
  * This is the data required to create a Track object.
  */
 export interface TrackInterface {
-  metadata: TrackMetadata
+  metadata: TrackMetadata;
   user: import("discord.js").User | import("discord.js").APIUser;
   startTime: number;
   endTime: number;

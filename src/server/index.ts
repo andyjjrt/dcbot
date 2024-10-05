@@ -109,7 +109,6 @@ app.post("/api/verify", (req, res) => {
 });
 
 lobbyIo.on("connection", (socket) => {
-
   socket.on("enter", (param) => {
     socket.join(param.guildId);
     const subscription = subscriptions.get(param.guildId);
@@ -121,11 +120,9 @@ lobbyIo.on("connection", (socket) => {
   socket.on("leave", (param) => {
     socket.leave(param.guildId);
   });
-
 });
 
 queueIo.on("connection", (socket) => {
-
   socket.on("enter", (param) => {
     socket.join(param.queueId);
     const subscription = subscriptions.get(param.guildId);

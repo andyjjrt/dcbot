@@ -43,7 +43,7 @@ export const fetchApi = (url: string, method: string, options?: AxiosRequestConf
   ajax(url, method, "/api", {
     ...options,
     headers: {
-      Authorization: localStorage.getItem("token")
+      Authorization: localStorage.getItem("token"),
     },
   });
 

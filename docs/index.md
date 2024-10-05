@@ -10,7 +10,7 @@ hero:
     alt: VitePress
   actions:
     - theme: brand
-      text:  Invite to your server
+      text: Invite to your server
       link: https://discord.com/oauth2/authorize?client_id=1091392369296937073
     - theme: alt
       text: Host your own one

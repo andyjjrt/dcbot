@@ -53,7 +53,7 @@ const guildIconUrl = computed(() => {
 
 const userIconUrl = computed(() => {
   return (userId: string, userAvatar: string | undefined) => {
-    if(!userAvatar) return "https://cdn.discordapp.com/embed/avatars/index.png"
+    if (!userAvatar) return "https://cdn.discordapp.com/embed/avatars/index.png";
     return `https://cdn.discordapp.com/avatars/${userId}/${userAvatar}.${userAvatar.startsWith("a_") ? "gif" : "png"}`;
   };
 });

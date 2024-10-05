@@ -28,7 +28,7 @@ export default {
         ? null
         : (interaction.options.get("model")?.value as string | undefined);
     try {
-      const ollama = new Ollama({ host: OLLAMA_URL || 'http://127.0.0.1:11434' })
+      const ollama = new Ollama({ host: OLLAMA_URL || "http://127.0.0.1:11434" });
       const response = await ollama.chat({
         model: modelName || OLLAMA_MODEL || "",
         messages: [{ role: "user", content: `${question}` }],
@@ -48,7 +48,7 @@ export default {
     }
   },
   async autocomplete(interaction: AutocompleteInteraction) {
-    const ollama = new Ollama({ host: OLLAMA_URL || 'http://127.0.0.1:11434' })
+    const ollama = new Ollama({ host: OLLAMA_URL || "http://127.0.0.1:11434" });
     const models = (await ollama.list()).models;
     await interaction.respond(
       models.map((model) => ({

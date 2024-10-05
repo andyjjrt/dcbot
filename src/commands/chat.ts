@@ -71,7 +71,7 @@ export default {
     }
   },
   async autocomplete(interaction: AutocompleteInteraction) {
-    const ollama = new Ollama({ host: OLLAMA_URL || 'http://127.0.0.1:11434' })
+    const ollama = new Ollama({ host: OLLAMA_URL || "http://127.0.0.1:11434" });
     const models = (await ollama.list()).models;
     await interaction.respond(
       models.map((model) => ({
@@ -87,7 +87,7 @@ export const replyConversation = async (message: DiscordMessage<boolean>) => {
   if (history && message.content && message.author.id != client.user.id) {
     history.messages.push({ role: "user", content: message.content });
     try {
-      const ollama = new Ollama({ host: OLLAMA_URL || 'http://127.0.0.1:11434' })
+      const ollama = new Ollama({ host: OLLAMA_URL || "http://127.0.0.1:11434" });
       const response = await ollama.chat({
         model: history.model,
         messages: history.messages,

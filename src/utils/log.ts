@@ -9,11 +9,11 @@ const streamToElastic = pinoElastic({
   index: ELK_INDEX || "dcbot",
   node: ELK_HOST || "http://localhost:9200",
   auth: {
-    apiKey: ELK_APIKEY || ""
+    apiKey: ELK_APIKEY || "",
   },
   tls: {
     ca: ELK_CERT ? fs.readFileSync(ELK_CERT) : undefined,
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   },
   esVersion: 8,
   flushBytes: 1000,

@@ -30,7 +30,13 @@ limitations under the License.
 
 import fs, { createReadStream } from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice";
-import { APIUser, ChatInputCommandInteraction, MessageComponentInteraction, MessageContextMenuCommandInteraction, User } from "discord.js";
+import {
+  APIUser,
+  ChatInputCommandInteraction,
+  MessageComponentInteraction,
+  MessageContextMenuCommandInteraction,
+  User,
+} from "discord.js";
 import { InfoEmbed } from "./Embed";
 import { getVideoDurationInSeconds } from "get-video-duration";
 import { getPlayListMetaData, getPlayListUrl, getTrackMetaData, getTrackUrl } from "./SpotifyDown";

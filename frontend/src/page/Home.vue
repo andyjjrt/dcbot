@@ -40,7 +40,11 @@
               {{ data.currentPlaying.channel }}
             </a>
           </div>
-          <a :href="'/api/song/' + data.currentPlaying.ytId" :download="data.currentPlaying.title" class="btn btn-neutral btn-sm">
+          <a
+            :href="'/api/song/' + data.currentPlaying.ytId"
+            :download="data.currentPlaying.title"
+            class="btn btn-neutral btn-sm"
+          >
             <Icon icon="material-symbols:download-2-rounded" />
           </a>
         </div>
