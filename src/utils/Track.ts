@@ -81,7 +81,7 @@ export class Track implements TrackInterface {
   }
 
   public async createAudioResource() {
-    if (!fs.existsSync(`${MUSIC_DIR}/${this.metadata.ytId}.webm`)) {
+    if (!fs.existsSync(`${MUSIC_DIR}/${this.metadata.ytId}.m4a`)) {
       const ytDlpWrap = new YTDlpWrap();
       await ytDlpWrap
         .execPromise([
@@ -89,7 +89,7 @@ export class Track implements TrackInterface {
           "-o",
           `${MUSIC_DIR}/%(id)s.%(ext)s`,
           "--format",
-          "bestaudio",
+          "ba[ext=m4a]",
           "--quiet",
           "--file-access-retries",
           "1",
@@ -98,10 +98,10 @@ export class Track implements TrackInterface {
           throw new Error(e.message.split("Stderr:\n")[1]);
         });
     }
-    const duration = await getVideoDurationInSeconds(createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.webm`));
+    const duration = await getVideoDurationInSeconds(createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.m4a`));
     this.startTime = new Date().getTime();
     this.endTime = new Date().getTime() + duration * 1000;
-    return createAudioResource(createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.webm`), {
+    return createAudioResource(createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.m4a`), {
       metadata: this,
       inputType: StreamType.WebmOpus,
     });
