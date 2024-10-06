@@ -119,8 +119,8 @@ export class MusicSubscription {
       }
     });
 
-    this.audioPlayer.on("error", (error: { resource: any }) =>
-      (error.resource as AudioResource<Track>).metadata.onError(new Error(error.resource))
+    this.audioPlayer.on("error", (error: any) =>
+      (error.resource as AudioResource<Track>).metadata.onError(new Error(error.message))
     );
 
     voiceConnection.subscribe(this.audioPlayer);
@@ -128,7 +128,7 @@ export class MusicSubscription {
     this.commandChannel.threads
       .fetch()
       .then((threads) => {
-        const channel = threads.threads.find((t) => t.ownerId === client.user.id);
+        const channel = threads.threads.find((t) => t.ownerId === client.user.id && t.name === "🎶 Logs");
         return (
           channel ||
           this.commandChannel.threads.create({
@@ -188,11 +188,11 @@ export class MusicSubscription {
 
   public async destroy(clearStatus?: boolean) {
     if (clearStatus) {
-      await client.rest.put(`/channels/${this.voiceConnection.joinConfig.channelId}/voice-status`, {
-        body: {
-          status: " ",
-        },
-      });
+      // await client.rest.put(`/channels/${this.voiceConnection.joinConfig.channelId}/voice-status`, {
+      //   body: {
+      //     status: " ",
+      //   },
+      // });
     }
     queueIo.to(this.id).disconnectSockets();
     this.voiceConnection.destroy();

@@ -103,7 +103,7 @@ export class Track implements TrackInterface {
     this.endTime = new Date().getTime() + duration * 1000;
     return createAudioResource(createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.m4a`), {
       metadata: this,
-      inputType: StreamType.WebmOpus,
+      // inputType: StreamType.WebmOpus,
     });
   }
 

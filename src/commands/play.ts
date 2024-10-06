@@ -152,9 +152,9 @@ export const play = async (
           subscription!.logChannel?.send({
             embeds: [new PlayingEmbed(interaction.member!.user, metaData).setThumbnail(metaData.thumbnail)],
           });
-          client.rest.put(`/channels/${subscription!.voiceConnection.joinConfig.channelId}/voice-status`, {
-            body: { status: `:musical_note:  ${metaData.title}-${metaData.channel}` },
-          });
+          // client.rest.put(`/channels/${subscription!.voiceConnection.joinConfig.channelId}/voice-status`, {
+          //   body: { status: `:musical_note:  ${metaData.title}-${metaData.channel}` },
+          // });
         },
         onError(error) {
           logger.error(error, "Unknown error");
