@@ -1,11 +1,42 @@
 <template>
-  <div class="h-full w-full flex flex-col">
+  <div v-if="layoutMode === 1">
+    <div v-if="data.currentPlaying">
+      <img :src="data.currentPlaying.thumbnail.replace('https://i.ytimg.com', '/ytimg')" class="rounded-md aspect-ratio h-screen" />
+      <div
+        class="flex flex-col overflow-hidden gap-1 grow shrink-1 w-screen absolute bottom-0 px-4 py-2 bg-black bg-opacity-60"
+      >
+        <div class="flex items-center gap-2">
+          <div class="truncate grow">
+            <a class="text-lg font-semibold" :href="data.currentPlaying.url">{{ data.currentPlaying.title }}</a>
+            <a class="font-semibold" :href="data.currentPlaying.channelUrl">
+              {{ data.currentPlaying.channel }}
+            </a>
+          </div>
+        </div>
+        <div class="flex items-center text-sm gap-2 shrink-0 w-full">
+          <span>{{ formatTime(progress) }}</span>
+          <progress class="progress progress-primary grow" :value="progress" :max="progressTotal"></progress>
+          <span>{{ formatTime(progressTotal) }}</span>
+        </div>
+      </div>
+    </div>
+    <div v-else class="hero-content text-center h-screen">
+      <div class="max-w-md">
+        <h1 class="text-4xl font-bold">Empty Here</h1>
+        <p class="pt-4 text-sm">Go to discord and play a song using /play</p>
+      </div>
+    </div>
+  </div>
+  <div class="h-full w-full flex flex-col" v-else>
     <div class="grow overflow-hidden">
       <div class="h-full overflow-auto">
         <div v-for="track in data.queue" :key="track.id">
           <div class="card card-compact bg-base-100 shadow-lg m-5">
             <div class="card-body grow flex-row items-center gap-3">
-              <img :src="track.thumbnail" class="aspect-auto rounded-md shrink-0 h-[4.5rem]" />
+              <img
+                :src="track.thumbnail.replace('https://i.ytimg.com', '/ytimg')"
+                class="aspect-auto rounded-md shrink-0 h-[4.5rem]"
+              />
               <div class="flex flex-col overflow-hidden grow shrink-1 w-0">
                 <span class="text-lg font-semibold truncate">
                   <a :href="track.url">{{ track.title }}</a>
@@ -31,7 +62,10 @@
       </div>
     </div>
     <div class="shrink-0 h-24 bg-base-200 flex items-center gap-3 p-4" v-if="data.currentPlaying">
-      <img :src="data.currentPlaying.thumbnail" class="aspect-auto rounded-md shrink-0 h-[4.5rem]" />
+      <img
+        :src="data.currentPlaying.thumbnail.replace('https://i.ytimg.com', '/ytimg')"
+        class="aspect-auto rounded-md shrink-0 h-[4.5rem]"
+      />
       <div class="flex flex-col overflow-hidden gap-1 grow shrink-1 w-0">
         <div class="flex items-center gap-2">
           <div class="truncate grow">
@@ -59,12 +93,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
 import { Manager, Socket } from "socket.io-client";
 import { useTimestamp } from "@vueuse/core";
 import { fetchApi } from "../utils/api";
 import { Icon } from "@iconify/vue";
+import { useDiscordStore } from "../store/discord";
+import { storeToRefs } from "pinia";
+
+const discordStore = useDiscordStore();
+const { auth, discordSdk } = storeToRefs(discordStore);
+
+const props = defineProps<{ guildId: string }>();
 
 interface TrackMetaData {
   url: string;
@@ -93,15 +133,27 @@ const initData: Data = {
 };
 
 const timestamp = useTimestamp({ offset: 0 });
-const route = useRoute();
 const data = reactive<Data>({ ...initData });
 const queueId = ref<string | undefined>(undefined);
-const manager = ref<Manager>(new Manager());
+const manager = ref<Manager>(new Manager({ path: "/.proxy/socketio" }));
+const layoutMode = ref(0);
 const lobbySocket = ref<Socket>(manager.value.socket("/lobby"));
 const queueSocket = ref<Socket>(manager.value.socket("/queue"));
 
 queueSocket.value.on("queue", (res) => {
   Object.assign(data, res);
+  if (data.currentPlaying) {
+    discordSdk.value.commands.setActivity({
+      activity: {
+        type: 2,
+        details: data.currentPlaying.title,
+        state: data.currentPlaying.channel,
+        assets: {
+          large_image: data.currentPlaying.thumbnail,
+        },
+      },
+    });
+  }
 });
 queueSocket.value.on("disconnect", () => {
   Object.assign(data, initData);
@@ -121,14 +173,18 @@ const formatTime = computed(() => {
 });
 
 const initQueueSocket = async () => {
+  console.log(auth.value);
   return fetchApi("/verify", "POST", {
     data: {
-      guildId: route.params.guildId,
+      guildId: props.guildId,
+    },
+    headers: {
+      Authorization: `Bearer ${auth.value?.access_token}`,
     },
   }).then((res) => {
     queueId.value = res.data.data.queueId;
     queueSocket.value.emit("enter", {
-      guildId: route.params.guildId,
+      guildId: props.guildId,
       queueId: res.data.data.queueId,
     });
   });
@@ -141,25 +197,16 @@ lobbySocket.value.on("ping", () => {
 
 onMounted(() => {
   lobbySocket.value.emit("enter", {
-    guildId: route.params.guildId,
+    guildId: props.guildId,
+  });
+  discordSdk.value.subscribe("ACTIVITY_LAYOUT_MODE_UPDATE", (event) => {
+    layoutMode.value = event.layout_mode;
   });
 });
 
 onUnmounted(() => {
   lobbySocket.value.emit("leave", {
-    guildId: route.params.guildId,
+    guildId: props.guildId,
   });
 });
-
-watch(
-  () => route.params.guildId,
-  (value, oldValue) => {
-    lobbySocket.value.emit("leave", {
-      guildId: oldValue,
-    });
-    lobbySocket.value.emit("enter", {
-      guildId: value,
-    });
-  }
-);
 </script>

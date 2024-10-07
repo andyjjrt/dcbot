@@ -40,11 +40,8 @@ export const ajax = async (url: string, method: string, baseURL?: string, option
  * @returns - Promise object
  */
 export const fetchApi = (url: string, method: string, options?: AxiosRequestConfig<any>) =>
-  ajax(url, method, "/api", {
+  ajax(url, method, "/.proxy/api", {
     ...options,
-    headers: {
-      Authorization: localStorage.getItem("token"),
-    },
   });
 
 export default ajax;

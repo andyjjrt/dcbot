@@ -38,6 +38,14 @@ export default class MyClient extends Client<true> {
         body: [
           ...this.commandCollection.map((command) => command.data.toJSON()),
           ...this.contextCollection.map((command) => command.data.toJSON()),
+          {
+            name: "launch",
+            description: "Launch Rosetta Activity",
+            type: 4,
+            handler: 2,
+            integration_types: [0, 1],
+            contexts: [0, 1, 2],
+          },
         ],
       })) as any;
       logger.info(`Reloaded ${data.filter((c: any) => c.type === 1).length} commands`);

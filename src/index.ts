@@ -7,6 +7,7 @@ import path from "path";
 import { MusicSubscription } from "./utils/Subscription";
 import Client from "./utils/Client";
 import { initDB } from "./utils/db";
+import { Permissions } from "./utils/db/schema";
 import { ErrorEmbed, InfoEmbed } from "./utils/Embed";
 import { logger } from "./utils/log";
 import { queueIo } from "./server/index";
@@ -251,7 +252,5 @@ client
   });
 
 import "./server/index";
-import { Permissions } from "utils/db/schema";
-import { P } from "pino";
 
 export default client;

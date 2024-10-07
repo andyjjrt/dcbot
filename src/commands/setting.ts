@@ -1,7 +1,7 @@
 import { ErrorEmbed, InfoEmbed, SuccessEmbed } from "../utils/Embed";
 import { SlashCommandBuilder, PermissionsBitField, ChatInputCommandInteraction } from "discord.js";
 import { client } from "../index";
-import { Permissions } from "utils/db/schema";
+import { Permissions } from "../utils/db/schema";
 const { OWNER_ID } = process.env;
 
 export default {

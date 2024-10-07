@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     proxy: {
-      "/socket.io": {
+      "/socketio": {
         target: "ws://localhost:3010",
         ws: true,
       },

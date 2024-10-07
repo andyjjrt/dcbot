@@ -3,18 +3,18 @@ import { createServer } from "node:http";
 import fs from "node:fs";
 import { join } from "node:path";
 import { Server } from "socket.io";
-import { request } from "undici";
+import { request, fetch } from "undici";
 
 import { logger } from "../utils/log";
 import { subscriptions, client } from "../index";
 import { PermissionsBitField, VoiceChannel } from "discord.js";
 
-const { MUSIC_DIR, PORT } = process.env;
+const { MUSIC_DIR, PORT, CLIENT_ID, SECRET } = process.env;
 
 const app = express();
 app.use(express.json());
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, { path: "/socketio" });
 
 export const lobbyIo = io.of("/lobby");
 export const queueIo = io.of("/queue");
@@ -106,6 +106,28 @@ app.post("/api/verify", (req, res) => {
       }
     })
     .catch(() => res.status(401).json({ error: true, msg: "unauthorized" }));
+});
+
+app.post("/api/token", async (req, res) => {
+  // Exchange the code for an access_token
+  const response = await fetch(`https://discord.com/api/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: CLIENT_ID || "",
+      client_secret: SECRET || "",
+      grant_type: "authorization_code",
+      code: req.body.code,
+    }),
+  });
+
+  // Retrieve the access_token from the response
+  const r = (await response.json()) as any;
+
+  // Return the access_token to our client as { access_token: "..."}
+  res.send({ access_token: r.access_token });
 });
 
 lobbyIo.on("connection", (socket) => {
