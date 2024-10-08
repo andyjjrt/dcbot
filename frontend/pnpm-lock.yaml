@@ -24,17 +24,17 @@ importers:
         specifier: ^4.7.4
         version: 4.7.4
       vue:
-        specifier: ^3.3.11
+        specifier: ^3.4.15
         version: 3.4.15(typescript@5.3.3)
       vue-router:
-        specifier: '4'
+        specifier: ^4.2.5
         version: 4.2.5(vue@3.4.15(typescript@5.3.3))
     devDependencies:
       '@iconify/vue':
         specifier: ^4.1.1
         version: 4.1.1(vue@3.4.15(typescript@5.3.3))
       '@vitejs/plugin-vue':
-        specifier: ^4.5.2
+        specifier: ^4.6.2
         version: 4.6.2(vite@5.0.12)(vue@3.4.15(typescript@5.3.3))
       autoprefixer:
         specifier: ^10.4.17
@@ -49,13 +49,13 @@ importers:
         specifier: ^3.4.1
         version: 3.4.1
       typescript:
-        specifier: ^5.2.2
+        specifier: ^5.3.3
         version: 5.3.3
       vite:
-        specifier: ^5.0.8
+        specifier: ^5.0.12
         version: 5.0.12
       vue-tsc:
-        specifier: ^1.8.25
+        specifier: ^1.8.27
         version: 1.8.27(typescript@5.3.3)
 
 packages:
@@ -482,8 +482,8 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
-  caniuse-lite@1.0.30001584:
-    resolution: {integrity: sha512-LOz7CCQ9M1G7OjJOF9/mzmqmj3jE/7VOmrfw6Mgs0E8cjOsbRXQJHsPBfmBOXDskXKrHLyyW3n7kpDW/4BsfpQ==}
+  caniuse-lite@1.0.30001667:
+    resolution: {integrity: sha512-7LTwJjcRkzKFmtqGsibMeuXmvFDfZq/nzIjnmgCGzKKRVzjD72selLDK1oPF/Oxzmt4fNcPvTDvGqSDG4tCALw==}
 
   chokidar@3.5.3:
     resolution: {integrity: sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==}
@@ -1408,7 +1408,7 @@ snapshots:
   autoprefixer@10.4.17(postcss@8.4.33):
     dependencies:
       browserslist: 4.22.3
-      caniuse-lite: 1.0.30001584
+      caniuse-lite: 1.0.30001667
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.0.0
@@ -1439,14 +1439,14 @@ snapshots:
 
   browserslist@4.22.3:
     dependencies:
-      caniuse-lite: 1.0.30001584
+      caniuse-lite: 1.0.30001667
       electron-to-chromium: 1.4.656
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.22.3)
 
   camelcase-css@2.0.1: {}
 
-  caniuse-lite@1.0.30001584: {}
+  caniuse-lite@1.0.30001667: {}
 
   chokidar@3.5.3:
     dependencies:

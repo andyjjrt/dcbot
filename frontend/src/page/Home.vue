@@ -1,22 +1,27 @@
 <template>
   <div v-if="layoutMode === 1">
     <div v-if="data.currentPlaying">
-      <img :src="data.currentPlaying.thumbnail.replace('https://i.ytimg.com', '/ytimg')" class="rounded-md aspect-ratio h-screen" />
+      <div class="flex justify-center items-center h-screen w-screen">
+        <img
+          :src="data.currentPlaying.thumbnail.replace('https://i.ytimg.com', '/ytimg')"
+          class="absolute aspect-ratio w-screen"
+        />
+      </div>
       <div
-        class="flex flex-col overflow-hidden gap-1 grow shrink-1 w-screen absolute bottom-0 px-4 py-2 bg-black bg-opacity-60"
+        class="flex flex-col overflow-hidden gap-1 grow shrink-1 w-screen absolute bottom-0 px-4 py-2 bg-black bg-opacity-50 backdrop-blur-sm z-20"
       >
         <div class="flex items-center gap-2">
           <div class="truncate grow">
-            <a class="text-lg font-semibold" :href="data.currentPlaying.url">{{ data.currentPlaying.title }}</a>
-            <a class="font-semibold" :href="data.currentPlaying.channelUrl">
+            <a class="font-semibold">{{ data.currentPlaying.title }}</a>
+            <a class="font-semibold">
               {{ data.currentPlaying.channel }}
             </a>
           </div>
         </div>
         <div class="flex items-center text-sm gap-2 shrink-0 w-full">
-          <span>{{ formatTime(progress) }}</span>
-          <progress class="progress progress-primary grow" :value="progress" :max="progressTotal"></progress>
-          <span>{{ formatTime(progressTotal) }}</span>
+          <span class="text-xs">{{ formatTime(progress) }}</span>
+          <progress class="progress grow" :value="progress" :max="progressTotal"></progress>
+          <span class="text-xs">{{ formatTime(progressTotal) }}</span>
         </div>
       </div>
     </div>
@@ -39,15 +44,15 @@
               />
               <div class="flex flex-col overflow-hidden grow shrink-1 w-0">
                 <span class="text-lg font-semibold truncate">
-                  <a :href="track.url">{{ track.title }}</a>
+                  <a @click="openLink(track.url)" class="cursor-pointer">{{ track.title }}</a>
                 </span>
                 <span class="font-semibold truncate">
-                  <a :href="track.channelUrl">{{ track.channel }}</a>
+                  <a @click="track.channelUrl ? openLink(track.channelUrl) : null" class="cursor-pointer">{{ track.channel }}</a>
                 </span>
               </div>
-              <a :href="'/api/song/' + track.ytId" :download="track.title" class="btn text-lg">
+              <!-- <a :href="'/api/song/' + track.ytId" :download="track.title" class="btn text-lg">
                 <Icon icon="material-symbols:download-2-rounded" />
-              </a>
+              </a> -->
             </div>
           </div>
         </div>
@@ -69,18 +74,18 @@
       <div class="flex flex-col overflow-hidden gap-1 grow shrink-1 w-0">
         <div class="flex items-center gap-2">
           <div class="truncate grow">
-            <a class="text-lg font-semibold" :href="data.currentPlaying.url">{{ data.currentPlaying.title }}</a>
-            <a class="font-semibold" :href="data.currentPlaying.channelUrl">
+            <a class="text-lg font-semibold cursor-pointer" @click="openLink(data.currentPlaying.url)">{{ data.currentPlaying.title }}</a>
+            <a class="font-semibold cursor-pointer" @click="data.currentPlaying.channelUrl ? openLink(data.currentPlaying.channelUrl) : null">
               {{ data.currentPlaying.channel }}
             </a>
           </div>
-          <a
-            :href="'/api/song/' + data.currentPlaying.ytId"
+          <!-- <a
+            @click="openLink('/api/song/' + data.currentPlaying.ytId)"
             :download="data.currentPlaying.title"
             class="btn btn-neutral btn-sm"
           >
             <Icon icon="material-symbols:download-2-rounded" />
-          </a>
+          </a> -->
         </div>
         <div class="flex items-center text-sm gap-2 shrink-0">
           <span>{{ formatTime(progress) }}</span>
@@ -139,6 +144,12 @@ const manager = ref<Manager>(new Manager({ path: "/.proxy/socketio" }));
 const layoutMode = ref(0);
 const lobbySocket = ref<Socket>(manager.value.socket("/lobby"));
 const queueSocket = ref<Socket>(manager.value.socket("/queue"));
+
+const openLink = (url: string) => {
+  discordSdk.value.commands.openExternalLink({
+    url: url,
+  });
+};
 
 queueSocket.value.on("queue", (res) => {
   Object.assign(data, res);

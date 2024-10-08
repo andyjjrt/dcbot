@@ -28,7 +28,7 @@ limitations under the License.
 
 */
 
-import fs, { createReadStream } from "fs";
+import fs from "fs";
 import { createAudioResource, StreamType } from "@discordjs/voice";
 import {
   APIUser,
@@ -37,6 +37,7 @@ import {
   MessageContextMenuCommandInteraction,
   User,
 } from "discord.js";
+import prism from "prism-media";
 import { InfoEmbed } from "./Embed";
 import { getVideoDurationInSeconds } from "get-video-duration";
 import { getPlayListMetaData, getPlayListUrl, getTrackMetaData, getTrackUrl } from "./SpotifyDown";
@@ -98,13 +99,17 @@ export class Track implements TrackInterface {
           throw new Error(e.message.split("Stderr:\n")[1]);
         });
     }
-    const duration = await getVideoDurationInSeconds(createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.m4a`));
+    const duration = await getVideoDurationInSeconds(fs.createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.m4a`));
     this.startTime = new Date().getTime();
     this.endTime = new Date().getTime() + duration * 1000;
-    return createAudioResource(createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.m4a`), {
+    const input = fs.createReadStream(`${MUSIC_DIR}/${this.metadata.ytId}.m4a`);
+    const resource = createAudioResource(input, {
       metadata: this,
+      inlineVolume: true,
       // inputType: StreamType.WebmOpus,
     });
+    resource.volume?.setVolume(0.1);
+    return resource;
   }
 
   /**
@@ -142,11 +147,12 @@ export class Track implements TrackInterface {
     const path = urlObj.pathname.slice(1).split("/");
     let musicUrl: undefined | string = undefined;
     if (urlObj.hostname === "open.spotify.com") {
-      if (path.includes("track")) {
-        return this.spotifyTrack(url, interaction.member!.user, defaultHandler);
-      } else if (path.includes("playlist") || path.includes("album")) {
-        return this.spotifyList(url, interaction.member!.user, defaultHandler);
-      }
+      // if (path.includes("track")) {
+      //   return this.spotifyTrack(url, interaction.member!.user, defaultHandler);
+      // } else if (path.includes("playlist") || path.includes("album")) {
+      //   return this.spotifyList(url, interaction.member!.user, defaultHandler);
+      // }
+      throw new Error("Spotify is currently broken");
     } else if (
       urlObj.hostname === "www.youtube.com" ||
       urlObj.hostname === "youtube.com" ||
@@ -194,7 +200,8 @@ export class Track implements TrackInterface {
       return new Track({
         metadata: {
           title: track.title,
-          thumbnail: track.thumbnails[0].url,
+          // thumbnail: track.thumbnails[0].url,
+          thumbnail: `https://i.ytimg.com/vi/${track.id}/0.jpg`,
           url: track.url || track.original_url,
           channel: track.channel,
           channelUrl: track.channel_url,
@@ -227,6 +234,8 @@ export class Track implements TrackInterface {
     const id = path.slice(-1)[0];
     const ytId = await getTrackUrl(id);
     const metaData = await getTrackMetaData(id);
+
+    console.log(metaData);
 
     return {
       tracks: [

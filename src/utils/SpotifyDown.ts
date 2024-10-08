@@ -1,5 +1,4 @@
 const headers = {
-  authority: "api.spotifydown.com",
   origin: "api.spotifydown.com",
   referer: "api.spotifydown.com",
 };
@@ -18,6 +17,8 @@ export const getTrackUrl = async (id: string) => {
   const response = await fetch(`https://api.spotifydown.com/getId/${id}`, {
     headers: headers,
   });
+  const tmp = await response.text();
+  console.log(tmp);
   const res = await response.json();
   const { id: ytId } = res;
   return ytId;

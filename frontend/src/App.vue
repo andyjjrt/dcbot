@@ -1,5 +1,9 @@
 <template>
   <Home :guildId="discordSdk.guildId || ''" v-if="isReady && auth" />
+  <div class="flex h-full items-center justify-center" v-else>
+    <div class="text-xl" v-if="isReady">Auth failed</div>
+    <span className="loading loading-spinner loading-lg" v-else></span>
+  </div>
 </template>
 
 <script setup lang="ts">
