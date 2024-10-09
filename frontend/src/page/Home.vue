@@ -8,7 +8,7 @@
         />
       </div>
       <div
-        class="flex flex-col overflow-hidden gap-1 grow shrink-1 w-screen absolute bottom-0 px-4 py-2 bg-black bg-opacity-50 backdrop-blur-sm z-20"
+        class="flex flex-col overflow-hidden gap-1 grow shrink-1 w-screen absolute bottom-0 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-[2px] z-20"
       >
         <div class="flex items-center gap-2">
           <div class="truncate grow">
@@ -47,7 +47,9 @@
                   <a @click="openLink(track.url)" class="cursor-pointer">{{ track.title }}</a>
                 </span>
                 <span class="font-semibold truncate">
-                  <a @click="track.channelUrl ? openLink(track.channelUrl) : null" class="cursor-pointer">{{ track.channel }}</a>
+                  <a @click="track.channelUrl ? openLink(track.channelUrl) : null" class="cursor-pointer">{{
+                    track.channel
+                  }}</a>
                 </span>
               </div>
               <!-- <a :href="'/api/song/' + track.ytId" :download="track.title" class="btn text-lg">
@@ -74,8 +76,13 @@
       <div class="flex flex-col overflow-hidden gap-1 grow shrink-1 w-0">
         <div class="flex items-center gap-2">
           <div class="truncate grow">
-            <a class="text-lg font-semibold cursor-pointer" @click="openLink(data.currentPlaying.url)">{{ data.currentPlaying.title }}</a>
-            <a class="font-semibold cursor-pointer" @click="data.currentPlaying.channelUrl ? openLink(data.currentPlaying.channelUrl) : null">
+            <a class="text-lg font-semibold cursor-pointer" @click="openLink(data.currentPlaying.url)">{{
+              data.currentPlaying.title
+            }}</a>
+            <a
+              class="font-semibold cursor-pointer"
+              @click="data.currentPlaying.channelUrl ? openLink(data.currentPlaying.channelUrl) : null"
+            >
               {{ data.currentPlaying.channel }}
             </a>
           </div>
@@ -102,7 +109,6 @@ import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
 import { Manager, Socket } from "socket.io-client";
 import { useTimestamp } from "@vueuse/core";
 import { fetchApi } from "../utils/api";
-import { Icon } from "@iconify/vue";
 import { useDiscordStore } from "../store/discord";
 import { storeToRefs } from "pinia";
 
@@ -161,6 +167,10 @@ queueSocket.value.on("queue", (res) => {
         state: data.currentPlaying.channel,
         assets: {
           large_image: data.currentPlaying.thumbnail,
+        },
+        timestamps: {
+          start: data.startTime,
+          end: data.endTime,
         },
       },
     });
