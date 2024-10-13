@@ -37,7 +37,6 @@ import {
   MessageContextMenuCommandInteraction,
   User,
 } from "discord.js";
-import prism from "prism-media";
 import { InfoEmbed } from "./Embed";
 import { getVideoDurationInSeconds } from "get-video-duration";
 import { getPlayListMetaData, getPlayListUrl, getTrackMetaData, getTrackUrl } from "./SpotifyDown";

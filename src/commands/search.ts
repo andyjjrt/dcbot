@@ -9,6 +9,7 @@ import {
   MessageContextMenuCommandInteraction,
 } from "discord.js";
 import { play } from "./play";
+import ytsearch from "yt-search"
 
 const { YT_API_KEY } = process.env;
 
@@ -34,13 +35,10 @@ export default {
       interaction instanceof MessageContextMenuCommandInteraction
         ? interaction.targetMessage
         : (interaction.options.get("keyword", true).value as string);
-    const response = await fetch(
-      `https://youtube.googleapis.com/youtube/v3/search?q=${keyword}&key=${YT_API_KEY}&type=video&part=snippet&maxResults=10`
-    );
-    const data = await response.json();
-    if (response.status !== 200) throw new Error(data.error.message);
-    const items = data.items.map((item: any, i: number) => {
-      return `**${i + 1}**.  [${item.snippet.title}](https://www.youtube.com/watch?v=${item.id.videoId}) \n`;
+    const result = await ytsearch({query: `${keyword}`, })
+    console.log(result)
+    const items = result.videos.map((item, i) => {
+      return `**${i + 1}**.  [${item.title}](https://www.youtube.com/watch?v=${item.videoId}) \n`;
     }) as string[];
     const embed = new InfoEmbed(
       interaction.client.user,
@@ -52,12 +50,11 @@ export default {
         .setCustomId("#SearchSelectMenu")
         .setPlaceholder("Nothing selected")
         .addOptions(
-          data.items.map((item: any, i: number) => {
-            const { title, channelTitle } = item.snippet;
+          result.videos.map((item, i) => {
             return {
-              label: (title as string).slice(0, 50) + ((title as string).length > 50 ? "..." : ""),
-              description: (channelTitle as string).slice(0, 50) + ((channelTitle as string).length > 50 ? "..." : ""),
-              value: item.id.videoId,
+              label: item.title.slice(0, 50) + (item.title.length > 50 ? "..." : ""),
+              description: item.author.name.slice(0, 50) + (item.author.name.length > 50 ? "..." : ""),
+              value: item.videoId,
             };
           })
         )
