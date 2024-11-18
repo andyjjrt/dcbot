@@ -35,14 +35,14 @@ export default {
           embeds: [
             new InfoEmbed(
               interaction.user,
-              ":calling: Created a thread for you!",
+              `:calling: Created a thread for you!`,
               "Feel free to chat with me. If you have done your conversation, just type `/chat end` to end the chat."
             ),
           ],
           fetchReply: true,
         });
         const thread = await message.startThread({
-          name: `Conversation with ${interaction.user.displayName}`,
+          name: `🦙 ${modelName.split(":")[0]} - Conversation with ${interaction.user.displayName}`,
           autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
         });
         conversation.set(thread.id, { model: modelName, creater: interaction.user.id, messages: [] });
@@ -85,15 +85,22 @@ export default {
 export const replyConversation = async (message: DiscordMessage<boolean>) => {
   let history = conversation.get(message.channelId);
   if (history && message.content && message.author.id != client.user.id) {
-    history.messages.push({ role: "user", content: message.content });
+    let images: string[] = [];
+    if (message.attachments.size) {
+      images = await Promise.all(
+        message.attachments.toJSON().map((attachment) =>
+          fetch(attachment.url)
+            .then((res) => res.arrayBuffer())
+            .then((res) => Buffer.from(res).toString("base64"))
+        )
+      );
+    }
+    history.messages.push({ role: "user", content: message.content, images: images });
     try {
       const ollama = new Ollama({ host: OLLAMA_URL || "http://127.0.0.1:11434" });
       const response = await ollama.chat({
         model: history.model,
         messages: history.messages,
-        options: {
-          stop: ["<|eot_id|>"],
-        },
         keep_alive: 0,
       });
       history.messages.push({ role: "assistant", content: response.message.content });

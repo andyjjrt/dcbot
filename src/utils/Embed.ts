@@ -1,4 +1,4 @@
-import { EmbedBuilder, Client, User, APIUser, ClientUser } from "discord.js";
+import { EmbedBuilder, Client, User, APIUser, ClientUser, Attachment } from "discord.js";
 import { TrackMetadata } from "../types/Track";
 import { ChatResponse } from "ollama";
 
@@ -77,12 +77,13 @@ export class InfoEmbed extends EmbedBuilder {
 }
 
 export class AIEmbed extends EmbedBuilder {
-  constructor(user: ClientUser | User | APIUser, question: string, response: ChatResponse) {
+  constructor(user: ClientUser | User | APIUser, question: string, response: ChatResponse, attachments: Attachment[] = []) {
     super();
     this.setColor(0x53fafa)
       .setTitle(":llama: AI answer")
       .setDescription(`Q: ${question}\nA: ${response.message.content}`)
       .setTimestamp()
+      .setImage(attachments.length ? attachments[0].url : null)
       .setFooter({
         text: `${response.model} | ${((response.eval_count * 1000000000) / response.eval_duration).toFixed(2)} tps`,
       });
