@@ -3,7 +3,7 @@ import { SlashCommandBuilder, CommandInteraction, AutocompleteInteraction, Attac
 import { client, subscriptions } from "../index";
 import { Database, RunResult } from "sqlite3";
 import { resolve } from "node:path";
-import { Mygo } from "utils/db/schema";
+import { Mygo } from "./../utils/db/schema";
 import { col, fn, Op } from "sequelize";
 import streamBuffers from "stream-buffers";
 import Ffmpeg from "fluent-ffmpeg";
@@ -14,7 +14,9 @@ export default {
   data: new SlashCommandBuilder()
     .setName("mygo")
     .setDescription("Get MyGO!!!!! picture")
-    .addStringOption((option) => option.setName("text").setDescription("text").setRequired(true).setAutocomplete(true)),
+    .setIntegrationTypes([0, 1])
+    .addStringOption((option) => option.setName("text").setDescription("text").setRequired(true).setAutocomplete(true))
+    .setContexts([0, 1, 2]),
   async execute(interaction: CommandInteraction) {
     let subscription = subscriptions.get(interaction.guildId!);
     const query = interaction.options.get("text", true).value as string;
