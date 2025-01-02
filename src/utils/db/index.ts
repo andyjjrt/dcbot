@@ -26,8 +26,16 @@ export const permissions = new Sequelize("permissions", "user", "password", {
   storage: path.join(DB_DIR as string, "permissions.sqlite"),
 });
 
+export const mygo = new Sequelize({
+  host: "localhost",
+  dialect: "sqlite",
+  logging: false,
+  // SQLite only
+  storage: path.join(DB_DIR as string, "mygo.sqlite"),
+});
+
 export const initDB = () => {
-  return Promise.all([history, record, permissions].map((db) => db.sync()));
+  return Promise.all([history, record, permissions, mygo].map((db) => db.sync()));
 };
 
 export default history;
